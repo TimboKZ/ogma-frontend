@@ -34,11 +34,16 @@ Promise.config({
 
 // Init basic window params
 window.isDevelopment = process.env.NODE_ENV !== 'production';
-window.serverHost = `http://${baseConfig.ogmaHost}:${baseConfig.ogmaPort}`;
+
 window.handleError = ErrorHandler.handleMiscError;
 window.handleErrorQuiet = ErrorHandler.handleMiscErrorQuiet;
 
-if (window.isDevelopment) console.log('Ogma app running in development mode.');
+if (window.isDevelopment) {
+    console.log('Ogma app running in development mode.');
+    window.serverHost = `http://${baseConfig.ogmaHost}:${baseConfig.ogmaPort}`;
+} else {
+    window.serverHost = '';
+}
 
 // Initialize notification component (only need to do this once)
 ReactDOM.render(<NotificationContainer/>, document.getElementById('notif'));
