@@ -17,22 +17,12 @@ import {createSelector} from 'reselect';
 import ReactTags from 'react-tag-autocomplete';
 import {hideAllContextMenus} from 'react-context-menu-wrapper';
 
-import Tabs from './Tabs';
 import Icon from './Icon';
 import Util from '../../util/Util';
 import ModalUtil from '../../util/ModalUtil';
 import {createDeepEqualSelector} from '../../redux/Selector';
 import {EnvironmentContext, EnvRoutePaths} from '../../util/typedef';
 
-const ContextTabs = {
-    Tag: 0,
-    File: 1,
-};
-
-const BaseTabOptions = [
-    {id: ContextTabs.Tag, icon: 'tag', name: 'Tags'},
-    {id: ContextTabs.File, icon: 'file', name: 'File'},
-];
 
 class TagContextMenu extends React.Component {
 
@@ -67,12 +57,9 @@ class TagContextMenu extends React.Component {
         super(props);
         this.summary = context;
 
-        this.tabOptionsTemplate = Util.deepClone(BaseTabOptions);
-
         this.state = {
             selectedTags: [],
-            activeTab: ContextTabs.Tag,
-            tabOptions: this.tabOptionsTemplate,
+            tabOption: {id: 0, icon: 'file', name: 'File'},
         };
 
         this.tagAddQueue = new Denque();
@@ -83,11 +70,12 @@ class TagContextMenu extends React.Component {
 
     static getDerivedStateFromProps(props, state) {
         const {files, selectedTags} = props;
+        const {tabOption} = state;
         const fileCount = files.length;
         const isMult = files.length > 1;
         const firstFile = files[0];
 
-        const fileTab = {...state.tabOptions[1]};
+        const fileTab = {...state.tabOption};
 
         if (isMult) {
             fileTab.icon = 'copy';
@@ -103,13 +91,9 @@ class TagContextMenu extends React.Component {
         }
         let newState = null;
         if (selectedTags !== state.selectedTags) newState = {selectedTags};
-        if (!equal(fileTab, state.tabOptions[1])) newState = {...newState, tabOptions: [state.tabOptions[0], fileTab]};
+        if (!equal(fileTab, tabOption)) newState = {...newState, tabOption: fileTab};
         return newState;
     }
-
-    handleTabChange = contextTab => {
-        this.setState({activeTab: contextTab});
-    };
 
     commitTagAddition = () => {
         const {files} = this.props;
@@ -194,11 +178,11 @@ class TagContextMenu extends React.Component {
             </div>;
         }
 
-        return <React.Fragment>
+        return <div style={{zIndex: 2}}>
             <ReactTags tags={this.state.selectedTags} suggestions={this.props.tags}
                        handleDelete={this.handleTagDeletion} handleAddition={this.handleTagAddition} minQueryLength={1}
                        allowNew={true} allowBackspace={false} placeholder="Add tag"/>
-        </React.Fragment>;
+        </div>;
     }
 
     renderFileOptions() {
@@ -238,7 +222,8 @@ class TagContextMenu extends React.Component {
             }
 
             const renameClick = () => {
-                ModalUtil.fire({
+                // noinspection JSUnusedGlobalSymbols
+                return ModalUtil.fire({
                     title: 'Rename file:',
                     input: 'text',
                     inputValue: file.base,
@@ -308,27 +293,20 @@ class TagContextMenu extends React.Component {
     }
 
     render() {
-        const state = this.state;
-
-        let tabContent;
-        if (state.activeTab === ContextTabs.Tag) tabContent = this.renderTagOptions();
-        else if (state.activeTab === ContextTabs.File) tabContent = this.renderFileOptions();
+        const {tabOption} = this.state;
 
         return (
             <div className="context-menu dropdown is-active">
 
-                <Tabs options={state.tabOptions} size="small" activeOption={state.activeTab}
-                      fullwidth={true} onOptionChange={this.handleTabChange}/>
+                <div className="context-menu-header">
+                    <Icon name={tabOption.icon}/> {tabOption.name}
+                </div>
 
                 <div className="dropdown-menu" id="dropdown-menu" role="menu">
                     <div className="dropdown-content">
-                        {tabContent}
-
-                        {!tabContent && tabContent === null &&
-                        <div className="dropdown-item"><Icon name="eye-slash"/> Tab content hidden.</div>}
-
-                        {!tabContent && tabContent !== null &&
-                        <div className="dropdown-item"><Icon name="radiation-alt"/> Invalid context tab option!</div>}
+                        {this.renderTagOptions()}
+                        <hr className="dropdown-divider"/>
+                        {this.renderFileOptions()}
                     </div>
                 </div>
 

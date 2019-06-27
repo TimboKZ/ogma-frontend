@@ -7,22 +7,11 @@
     //overflow: hidden;
     width: 250px;
 
-    .tabs {
-        overflow: hidden !important;
-        border-radius: 3px;
-        margin: 0;
-
-        li {
-            opacity: 0.7;
-            &.is-active {
-                opacity: 1;
-            }
-        }
-
-        button[disabled] {
-            pointer-events: none;
-            opacity: 0.4;
-        }
+    &-header {
+        border-bottom: solid 1px #ddd;
+        text-align: center;
+        font-size: 0.9rem;
+        padding: 2px 0;
     }
 
     .dropdown {
