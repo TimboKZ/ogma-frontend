@@ -3,7 +3,6 @@
     &-explorer {
         border: solid 1px #dbdbdb;
         -webkit-user-select: none;
-        background-color: #fafafa;
         -moz-user-select: none;
         flex-direction: column;
         user-select: none;
@@ -44,13 +43,9 @@
             overflow-y: scroll;
             overflow-x: hidden;
             flex: 1 1 auto;
-            padding: 3px;
             height: 0;
-            &.list {
-                border-radius: 0 !important;
-                box-shadow: none !important;
-                margin: 0 !important;
-                padding: 0;
+            &.view-thumb {
+                padding: 3px;
             }
             &-text {
                 text-align: center;
@@ -60,37 +55,81 @@
         }
     }
     &-entry {
-        &.selected &-name {
-            color: #09f !important;
-            * {
-                color: #0089de !important;
-            }
-        }
-        &:focus &-name  {
-            text-decoration: underline !important;
-        }
     }
 }
 
-.list {
-    .file-entry {
+.file-entry {
+    vertical-align: top;
+    position: relative;
+    font-size: 0.9rem;
+    text-align: left;
+    overflow: hidden;
+    &.view-list {
         border: none;
         border-bottom: solid 1px #efefef;
 
+        background: transparent;
         box-sizing: border-box;
         padding-left: 3.2rem;
-        position: relative;
-        font-size: 0.9rem;
         border-radius: 0;
-        overflow: hidden;
-        text-align: left;
         display: block;
         color: #2f2f2f;
         width: 100%;
+        z-index: 1;
         margin: 0;
-
         &.selected {
             background-color: #ecedff;
+        }
+    }
+    &.view-thumb {
+        background-color: #999;
+        border: solid 1px #ccc;
+        word-break: break-all;
+        border-radius: 3px;
+        font-size: 0.8rem;
+        height: 150px;
+        width: 250px;
+        margin: 3px;
+    }
+    &.large-thumb {
+        height: 300px;
+        width: 400px;
+    }
+
+    &.selected &-name {
+        color: #09f !important;
+        * {
+            color: #0089de;
+        }
+    }
+
+    &:focus {
+        outline: none;
+    }
+
+    &:focus &-name {
+        text-decoration: underline !important;
+    }
+}
+
+.view-list {
+    .file-entry {
+        &:focus {
+            &:before, &:after {
+                background-color: rgba(15, 129, 204, 0.6);
+                position: absolute;
+                display: block;
+                height: 2px;
+                width: 100%;
+                content: '';
+                left: 0;
+            }
+            &:before {
+                top: 0;
+            }
+            &:after {
+                bottom: 0;
+            }
         }
 
         &-thumbnail, &-name, &-tags {
@@ -105,15 +144,16 @@
             background-color: #fafafa;
             background-size: contain;
             position: absolute;
+            z-index: -2;
             height: 100%;
             width: 3rem;
-            z-index: 1;
             left: 0;
             top: 0;
         }
 
         &-name {
-            padding: 4px 4px 4px 8px;
+            padding: 3px 4px 3px 8px;
+            position: relative;
             top: 0;
 
             &-icon {
@@ -129,37 +169,19 @@
         }
 
         &-tags {
+            margin-bottom: -2px;
             margin-left: 0.5rem;
             font-size: 0.75rem;
-            padding: 2px;
+            position: relative;
+            padding: 0 2px;
         }
     }
 }
 
-.medium-thumb, .large-thumb {
+.view-thumb {
     .file-entry {
-        background-color: #999;
-        border: solid 1px #ccc;
-        word-break: break-all;
-        display: inline-block;
-        vertical-align: top;
-        border-radius: 3px;
-        position: relative;
-        font-size: 0.8rem;
-        text-align: left;
-        overflow: hidden;
-        height: 150px;
-        width: 250px;
-        margin: 3px;
-
-        &.large-thumb {
-            font-size: 0.9rem;
-            height: 300px;
-            width: 400px;
-        }
-
-        &:focus &-name {
-            text-decoration: underline;
+        &:focus {
+            box-shadow: rgba(15, 129, 204, 0.8) 0 0 1px 3px;
         }
 
         &-thumbnail, &-selected, &-tags, &-icon {

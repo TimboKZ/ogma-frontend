@@ -78,12 +78,24 @@ export const MenuIds = {
 };
 
 /**
- * @enum {string} FileView
+ * @enum {number} FileView
  */
 export const FileView = {
-    List: 'list',
-    MediumThumb: 'medium-thumb',
-    LargeThumb: 'large-thumb',
+    List: 0,
+    MediumThumb: 1,
+    LargeThumb: 2,
+    EnumMax: 3, // Used in for loops and such
+};
+export const DefaultFileView = FileView.MediumThumb;
+export const FileViewToClass = view => {
+    let className = '';
+    if (view === FileView.List) className = 'view-list';
+    else {
+        className = 'view-thumb ';
+        if (view === FileView.MediumThumb) className += 'medium-thumb';
+        if (view === FileView.LargeThumb) className += 'large-thumb';
+    }
+    return className;
 };
 
 export const SortOrder = {
@@ -144,6 +156,7 @@ export const KeyCode = {
     ArrowUp: 38,
     ArrowDown: 40,
     A: 65,
+    C: 67,
 };
 
 export * from '../../../shared/typedef';

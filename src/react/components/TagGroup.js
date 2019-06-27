@@ -71,6 +71,7 @@ class TagGroup extends React.Component {
             const tag = tags[i];
             if (!tag) {
                 comps[i] = <div key={`bad-tag-${i}`} className={badClassName}>Bad tag!</div>;
+                continue;
             }
             const style = {background: tag.color};
             const title = showEllipsis ? tag.name : null;

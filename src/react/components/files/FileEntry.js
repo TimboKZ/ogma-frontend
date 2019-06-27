@@ -5,6 +5,8 @@
  */
 
 import React from 'react';
+import c from 'classnames';
+import {When} from 'react-if';
 import {connect} from 'react-redux';
 import * as PropTypes from 'prop-types';
 import VisibilitySensor from 'react-visibility-sensor';
@@ -15,6 +17,8 @@ import TagGroup from '../TagGroup';
 import {FolderIconData, getIconData} from '../../../util/IconUtil';
 import {
     FileView,
+    DefaultFileView,
+    FileViewToClass,
     ColorsLight,
     ColorsDark,
     ThumbnailState,
@@ -38,7 +42,7 @@ class FileEntry extends React.PureComponent {
         file: FilePropType.isRequired,
 
         // Props passed by parent
-        view: PropTypes.string,
+        view: PropTypes.number,
         showExtension: PropTypes.bool,
         collapseLongNames: PropTypes.bool,
         singleAndDoubleClickExclusive: PropTypes.bool,
@@ -51,7 +55,7 @@ class FileEntry extends React.PureComponent {
 
     static defaultProps = {
         selected: false,
-        view: FileView.MediumThumb,
+        view: DefaultFileView,
         showExtension: true,
         collapseLongNames: false,
         singleAndDoubleClickExclusive: false,
@@ -152,7 +156,7 @@ class FileEntry extends React.PureComponent {
     }
 
     render() {
-        const {selected, view, showExtension, collapseLongNames} = this.props;
+        const {selected, view, showExtension, collapseLongNames, displayIndex} = this.props;
         const file = this.props.file;
 
         // Prepare file name
@@ -171,62 +175,51 @@ class FileEntry extends React.PureComponent {
             }
         }
 
+        const isListView = view === FileView.List;
 
         const thumbBgImage = this.state.thumbBgImage;
         const thumbStyle = {backgroundImage: thumbBgImage};
+        const iconStyle = !isListView ? {} : {color: ColorsDark[this.state.icon.colorCode]};
+        const wrapperStyle = isListView ? {} : {backgroundColor: ColorsDark[this.state.icon.colorCode]};
 
-        const className = `file-entry ${view} ${selected ? 'selected' : ''}`;
-        if (view === FileView.List) {
-            const iconStyle = {color: ColorsDark[this.state.icon.colorCode]};
-            return (
-                <VisibilitySensor partialVisibility={true} offset={{top: -150, bottom: -150}}
-                                  intervalDelay={500}
-                                  onChange={this.handleVisibilityChange}>
-                    <button {...this.handlers} className={className} onClick={this.handleClick}>
+        const viewClass = FileViewToClass(view);
+        const entryClass = c({
+            [viewClass]: true,
+            'file-entry': true,
+            'selected': selected,
+        });
+        const thumbnailClass = c({
+            [viewClass]: true,
+            'loaded': !!thumbBgImage,
+            'file-entry-thumbnail': true,
+        });
 
-                        {<div className={`file-entry-thumbnail ${thumbBgImage ? 'loaded' : ''}`} style={thumbStyle}/>}
-
-                        <div className="file-entry-name">
-                            <span className="file-entry-name-icon" style={iconStyle}>{this.renderIcon(false)}</span>
-                            {name}
-                            {showExtension && <span className="file-entry-name-ext">{file.ext}</span>}
-
-                            {file.entityId && <div className="file-entry-tags">
-                                <TagGroup summary={this.summary} entityId={file.entityId}
-                                          showEllipsis={collapseLongNames}/>
-                            </div>}
-                        </div>
-
-
-                    </button>
-                </VisibilitySensor>
-            );
-        }
-
-        const wrapperStyle = {backgroundColor: ColorsDark[this.state.icon.colorCode]};
         return (
             <VisibilitySensor partialVisibility={true} offset={{top: -150, bottom: -150}}
-                              intervalDelay={500}
-                              onChange={this.handleVisibilityChange}>
-                <button {...this.handlers} className={className} onClick={this.handleClick} style={wrapperStyle}>
+                              intervalDelay={500} onChange={this.handleVisibilityChange}>
+                <button {...this.handlers} className={entryClass} onClick={this.handleClick}
+                        style={wrapperStyle} data-display-index={displayIndex}>
 
-                    {<div className={`file-entry-thumbnail ${thumbBgImage ? 'loaded' : ''}`} style={thumbStyle}/>}
+                    <div className={thumbnailClass} style={thumbStyle}/>
 
-                    {selected && <div className={`file-entry-selected`}/>}
-
-                    {file.entityId && <div className="file-entry-tags">
-                        <TagGroup summary={this.summary} entityId={file.entityId}
-                                  showEllipsis={collapseLongNames}/>
-                    </div>}
-
-                    <div className="file-entry-icon">
-                        <div className="file-entry-icon-content">{this.renderIcon(true)}</div>
-                    </div>
+                    <When condition={!isListView}>
+                        {selected && <div className={`file-entry-selected`}/>}
+                        {file.entityId && <div className="file-entry-tags">
+                            <TagGroup summary={this.summary} entityId={file.entityId} showEllipsis={collapseLongNames}/>
+                        </div>}
+                        <div className="file-entry-icon">
+                            <div className="file-entry-icon-content">{this.renderIcon(true)}</div>
+                        </div>
+                    </When>
 
                     <div className="file-entry-name">
-                        <span className="file-entry-name-icon">{this.renderIcon(false)}</span>
+                        <span className="file-entry-name-icon" style={iconStyle}>{this.renderIcon(false)}</span>
                         {name}
                         {showExtension && <span className="file-entry-name-ext">{file.ext}</span>}
+                        {isListView && file.entityId && <div className="file-entry-tags">
+                            <TagGroup summary={this.summary} entityId={file.entityId}
+                                      showEllipsis={collapseLongNames}/>
+                        </div>}
                     </div>
 
                 </button>

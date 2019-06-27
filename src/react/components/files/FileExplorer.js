@@ -22,7 +22,7 @@ import FilePreview from './FilePreview';
 import FileStatusBar from './FileStatusBar';
 import TagContextMenu from '../TagContextMenu';
 import {createDeepEqualSelector} from '../../../redux/Selector';
-import {EnvSummaryPropType, ExplorerOptions, ExplorerOptionsDefaults, KeyCode} from '../../../util/typedef';
+import {EnvSummaryPropType, ExplorerOptions, ExplorerOptionsDefaults, FileView, KeyCode} from '../../../util/typedef';
 
 const FuseOptions = {
     id: 'hash',
@@ -65,7 +65,6 @@ class FileExplorer extends React.Component {
             showPreview: props.showPreview,
         };
     }
-
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
         return !equal(this.props, nextProps) || !equal(this.state, nextState);
@@ -158,7 +157,7 @@ class FileExplorer extends React.Component {
 
     handleKeydown = event => {
         const {path: currPath, changePath} = this.props;
-        const {fileHashes, selection: oldSelection} = this.state;
+        const {fileHashes, selection: oldSelection, options} = this.state;
 
         const tagName = event.target.tagName.toUpperCase();
         const isInInput = tagName === 'INPUT' || tagName === 'TEXTAREA';
@@ -174,6 +173,11 @@ class FileExplorer extends React.Component {
                     }
                     this.setState({selection});
                 }
+                break;
+            case KeyCode.C:
+                event.preventDefault();
+                const newFileView = (options[ExplorerOptions.FileView] + 1) % FileView.EnumMax;
+                this.handleOptionChange(ExplorerOptions.FileView, newFileView);
                 break;
             case KeyCode.Backspace:
                 if (changePath && currPath !== '/') changePath(path.dirname(currPath));
@@ -203,8 +207,6 @@ class FileExplorer extends React.Component {
     };
 
     handleOptionChange = (optionId, value) => {
-        console.log('Option change:', optionId, value);
-
         if (optionId === ExplorerOptions.SortOrder || optionId === ExplorerOptions.FoldersFirst) {
             this.setState(prevState => {
                 const options = {...prevState.options, [optionId]: value};
@@ -265,7 +267,7 @@ class FileExplorer extends React.Component {
                     selection[fileHashes[i]] = true;
                 }
             } else {
-                if (multiSelection) selection = oldSel;
+                if (multiSelection) selection = {...oldSel};
                 if (oldSel[hash] && oldSelSize <= 1) {
                     delete selection[hash];
                 } else {
@@ -313,34 +315,35 @@ class FileExplorer extends React.Component {
         const {badHashes, contextMenuId, changePath} = this.props;
         const {filter, slimFiles, fileHashes, selection, options, showPreview, contextFileHash} = this.state;
 
-        const fileListComp = <FileList summary={this.summary} fileHashes={fileHashes} badHashes={badHashes}
-                                       selection={selection} contextMenuId={contextMenuId}
-                                       view={options[ExplorerOptions.FileView]}
-                                       showExtensions={options[ExplorerOptions.ShowExtensions]}
-                                       collapseLongNames={options[ExplorerOptions.CollapseLongNames]}
-                                       handleSingleClick={this.handleSingleClick}
-                                       handleDoubleClick={this.handleDoubleClick}/>;
-        const filePreviewComp = <FilePreview/>;
-
         const fileCount = fileHashes ? fileHashes.length : -1;
         const hiddenCount = (slimFiles ? slimFiles.length : -1) - fileCount;
         const selectionSize = _.size(selection);
         const loadingCount = badHashes.length;
 
-        return <div className="file-explorer">
-            <FileStatusBar filter={filter} onFilerChange={this.handleFilterChange}
-                           fileCount={fileCount} hiddenCount={hiddenCount}
-                           selectionSize={selectionSize} loadingCount={loadingCount}
-                           options={options} onOptionChange={this.onOptionChange}/>
-            {fileListComp}
-            {showPreview && filePreviewComp}
+        return (
+            <div className="file-explorer">
+                <FileStatusBar filter={filter} onFilerChange={this.handleFilterChange}
+                               fileCount={fileCount} hiddenCount={hiddenCount}
+                               selectionSize={selectionSize} loadingCount={loadingCount}
+                               options={options} onOptionChange={this.onOptionChange}/>
 
-            <ContextMenuWrapper id={contextMenuId} hideOnSelfClick={false} onShow={this.handleContextMenuShow}>
-                <TagContextMenu id={contextMenuId} fileHash={contextFileHash} changePath={changePath}
-                                summary={this.summary} selection={selection}
-                                confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}/>
-            </ContextMenuWrapper>
-        </div>;
+                <FileList summary={this.summary} fileHashes={fileHashes} badHashes={badHashes}
+                          selection={selection} contextMenuId={contextMenuId}
+                          view={options[ExplorerOptions.FileView]}
+                          showExtensions={options[ExplorerOptions.ShowExtensions]}
+                          collapseLongNames={options[ExplorerOptions.CollapseLongNames]}
+                          handleSingleClick={this.handleSingleClick}
+                          handleDoubleClick={this.handleDoubleClick}/>
+
+                {showPreview && <FilePreview/>}
+
+                <ContextMenuWrapper id={contextMenuId} hideOnSelfClick={false} onShow={this.handleContextMenuShow}>
+                    <TagContextMenu id={contextMenuId} fileHash={contextFileHash} changePath={changePath}
+                                    summary={this.summary} selection={selection}
+                                    confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}/>
+                </ContextMenuWrapper>
+            </div>
+        );
     };
 
 }

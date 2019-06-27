@@ -5,11 +5,12 @@
  */
 
 import React from 'react';
+import c from 'classnames';
 import * as PropTypes from 'prop-types';
 
 import Icon from '../Icon';
 import FileEntry from './FileEntry';
-import {EnvSummaryPropType} from '../../../util/typedef';
+import {EnvSummaryPropType, FileViewToClass} from '../../../util/typedef';
 
 // const FileViewConfigs = {
 //     [FileView.MediumThumb]: {columnWidth: 256, rowHeight: 156},
@@ -20,7 +21,7 @@ class FileList extends React.Component {
 
     static propTypes = {
         // Props passed by parent
-        view: PropTypes.string.isRequired,
+        view: PropTypes.number.isRequired,
         summary: EnvSummaryPropType.isRequired,
         fileHashes: PropTypes.arrayOf(PropTypes.string),
         badHashes: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -63,7 +64,11 @@ class FileList extends React.Component {
     render() {
         const {view} = this.props;
 
-        return <div className={`file-list ${view}`}>
+        const className = c({
+            'file-list': true,
+            [FileViewToClass(view)]: true,
+        });
+        return <div className={className}>
             {this.renderFiles()}
         </div>;
     };

@@ -153,10 +153,12 @@ export default class FileStatusBar extends React.Component {
                 </div>
 
                 <div className="level-right">
-                    {this.renderButtons('order', SortOrderOptions, options[Options.SortOrder], prepHandler(Options.SortOrder))}
-                    {this.renderButtons('view', FileViewOptions, options[Options.FileView], prepHandler(Options.FileView))}
-                    {this.renderButton('info', options[Options.ShowPreview], prepHandler(Options.ShowPreview), 'Show file' +
-                        ' preview')}
+                    {this.renderButtons('order', SortOrderOptions, options[Options.SortOrder],
+                        prepHandler(Options.SortOrder))}
+                    {this.renderButtons('view', FileViewOptions, options[Options.FileView],
+                        prepHandler(Options.FileView))}
+                    {this.renderButton('eye', options[Options.ShowPreview],
+                        prepHandler(Options.ShowPreview), 'Show file preview')}
 
                     <div className="level-item">
                         <div className="dropdown is-right is-hoverable">
