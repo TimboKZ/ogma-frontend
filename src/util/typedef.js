@@ -36,8 +36,7 @@ export const ReduxActions = {
     UpdateEntities: 'update-entities',
 
     SetDirectoryContent: 'set-dir-contents',
-    SetMultipleFileDetails: 'set-multi-file-details',
-    AddMultipleFiles: 'add-files',
+    OverwriteMultipleFileDetails: 'overwrite-multi-file-details',
     RemoveMultipleFiles: 'remove-files',
     UpdateThumbStates: 'update-thumb-state',
 
@@ -113,12 +112,6 @@ export const ExplorerOptions = {
     ShowHidden: 'show-hidden',
     ConfirmDeletions: 'confirm-deletions',
 };
-
-export const ExplorerOptionsThatAffectSort = [
-    ExplorerOptions.SortOrder,
-    ExplorerOptions.FoldersFirst,
-    ExplorerOptions.ShowHidden,
-];
 
 export const ExplorerOptionsDefaults = {
     [ExplorerOptions.SortOrder]: SortOrder.NameAsc,

@@ -80,20 +80,18 @@ export const environmentReducer = createReducer({}, {
     [ReduxActions.SetAllEntities]: (state, action) => {
         const entities = action.data;
         // Uncomment if we'll need entityIDs in the future
-        // const entityIds = new Array(tags.length);
         const entityMap = {};
         for (let i = 0; i < entities.length; ++i) {
             const entity = entities[i];
-            // entityIds[i] = entity.id;
             entityMap[entity.id] = entity;
         }
         return {...state, entityMap};
     },
     [ReduxActions.UpdateEntities]: (state, action) => {
-        const entities = action.data;
+        const partialSlimEntities = action.data;
         const entityMap = {...state.entityMap};
-        for (let i = 0; i < entities.length; ++i) {
-            const entity = entities[i];
+        for (let i = 0; i < partialSlimEntities.length; ++i) {
+            const entity = partialSlimEntities[i];
             entityMap[entity.id] = {
                 ...entityMap[entity.id],
                 ...entity,
@@ -103,62 +101,55 @@ export const environmentReducer = createReducer({}, {
     },
 
     [ReduxActions.SetDirectoryContent]: (state, action) => {
-        const {directory: dir, files} = action.data;
+        const {directory: dir, fileHashes} = action.data;
         const fileMap = {...state.fileMap};
         const oldDir = fileMap[dir.hash];
         fileMap[dir.hash] = {
             ...oldDir,
-            fileHashes: files,
+            fileHashes: fileHashes,
         };
         return {...state, fileMap};
     },
-    [ReduxActions.SetMultipleFileDetails]: (state, action) => {
+    [ReduxActions.OverwriteMultipleFileDetails]: (state, action) => {
         const files = action.data;
         let {fileMap, entityMap} = state;
         fileMap = {...fileMap};
         entityMap = {...entityMap};
-        for (const newFile of files) {
-            const oldFile = fileMap[newFile.hash];
-            fileMap[newFile.hash] = {
-                ...oldFile,
-                ...newFile,
-            };
-            delete fileMap[newFile.hash]['tagIds'];
-            if (!oldFile || newFile.entityId !== oldFile.entityId) {
-                if (oldFile) delete entityMap[oldFile.entityId];
-                if (newFile.entityId) {
-                    entityMap[newFile.entityId] = {
-                        ...entityMap[newFile.entityId],
-                        id: newFile.entityId,
-                        hash: newFile.hash,
-                        tagIds: newFile.tagIds,
-                    };
-                }
-            }
-        }
-        return {...state, fileMap, entityMap};
-    },
-    [ReduxActions.AddMultipleFiles]: (state, action) => {
-        const newFiles = action.data;
-        let {fileMap} = state;
-        fileMap = {...fileMap};
-
         const dirHashMap = {};
-        for (const file of newFiles) {
+        for (const file of files) {
+            const oldFile = fileMap[file.hash];
             fileMap[file.hash] = {
-                ...fileMap[file.hash],
+                ...oldFile,
                 ...file,
             };
 
-            const nixPath = file.nixPath;
-            const dirPath = nixPath.substring(0, nixPath.length - file.base.length - 1);
-            const dirHash = Util.getFileHash(dirPath === '' ? '/' : dirPath);
+            // Delete tag IDs from file since this data belongs in entity map
+            delete fileMap[file.hash]['tagIds'];
 
-            if (dirHashMap[dirHash]) dirHashMap[dirHash].push(file.hash);
-            else dirHashMap[dirHash] = [file.hash];
+            // Update entity info
+            if (!oldFile || file.entityId !== oldFile.entityId) {
+                if (oldFile) delete entityMap[oldFile.entityId];
+                if (file.entityId) {
+                    entityMap[file.entityId] = {
+                        ...entityMap[file.entityId],
+                        id: file.entityId,
+                        hash: file.hash,
+                        tagIds: file.tagIds,
+                    };
+                }
+            }
+
+            // Record for which directories new files are created
+            if (!oldFile) {
+                const nixPath = file.nixPath;
+                const dirPath = nixPath.substring(0, nixPath.length - file.base.length - 1);
+                const dirHash = Util.getFileHash(dirPath === '' ? '/' : dirPath);
+                if (dirHashMap[dirHash]) dirHashMap[dirHash].push(file.hash);
+                else dirHashMap[dirHash] = [file.hash];
+            }
         }
 
-        // Update directory hashes
+        // Update list of child hashes for relevant directories
         for (const dirHash in dirHashMap) {
             if (!dirHashMap.hasOwnProperty(dirHash)) continue;
             const directory = fileMap[dirHash];
@@ -171,8 +162,8 @@ export const environmentReducer = createReducer({}, {
                 fileHashes: _.union(fileHashes, dirHashMap[dirHash]),
             };
         }
-
-        return {...state, fileMap};
+        
+        return {...state, fileMap, entityMap};
     },
     [ReduxActions.RemoveMultipleFiles]: (state, action) => {
         const deletedHashes = action.data;

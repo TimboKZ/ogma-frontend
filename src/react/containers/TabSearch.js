@@ -35,6 +35,7 @@ class TabSearch extends React.Component {
         // Props provided by redux.connect
         tagIds: PropTypes.arrayOf(PropTypes.string).isRequired,
         entityMap: PropTypes.object.isRequired,
+        fileMap: PropTypes.object.isRequired,
         selectedTagsMap: PropTypes.object.isRequired,
         tagFilter: PropTypes.string.isRequired,
         tagSearchCondition: PropTypes.number.isRequired,
@@ -110,7 +111,7 @@ class TabSearch extends React.Component {
     }
 
     render() {
-        const {tagIds, entityMap, selectedTagsMap, tagSearchCondition} = this.props;
+        const {tagIds, entityMap, fileMap, selectedTagsMap, tagSearchCondition} = this.props;
         const [selectedTags, availableTags] = _.partition(tagIds, id => !!selectedTagsMap[id]);
         const selectedTagCount = _.size(selectedTagsMap);
 
@@ -131,6 +132,7 @@ class TabSearch extends React.Component {
             relevantEntityIds = relevantEntities.map(e => e.id);
         }
         const hashes = relevantEntityIds.map(id => entityMap[id].hash);
+        const [goodHashes, badHashes] = _.partition(hashes, h => !!fileMap[h]);
 
         return <React.Fragment>
             <Helmet><title>Search</title></Helmet>
@@ -146,17 +148,18 @@ class TabSearch extends React.Component {
             </div>
 
             <FileExplorer summary={this.summary} fileHashes={hashes} changePath={this.changePath}
-                             contextMenuId={MenuIds.TabSearch}/>
+                          contextMenuId={MenuIds.TabSearch}/>
         </React.Fragment>;
     };
 
 }
 
 export default connect((state, ownProps) => {
-    const {tagIds, entityMap, tabSearch} = state.envMap[ownProps.summary.id];
+    const {tagIds, entityMap, fileMap, tabSearch} = state.envMap[ownProps.summary.id];
     return {
         tagIds,
         entityMap,
+        fileMap,
         ...tabSearch,
     };
 })(TabSearch);

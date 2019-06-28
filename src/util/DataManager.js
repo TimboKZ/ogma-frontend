@@ -8,7 +8,7 @@ import _ from 'lodash';
 import Denque from 'denque';
 import Promise from 'bluebird';
 
-import {BackendEvents, ReduxActions} from './typedef';
+import {BackendEvents, FileErrorStatus, ReduxActions} from './typedef';
 import ErrorHandler from './ErrorHandler';
 
 export default class DataManager {
@@ -44,7 +44,7 @@ export default class DataManager {
             [BackendEvents.EnvRemoveFiles]: data => this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, data.hashes),
             [BackendEvents.EnvAddTags]: data => this.dispatch(ReduxActions.AddNewTags, data.id, data.tags),
             [BackendEvents.EnvUpdateEntities]: data => this.dispatch(ReduxActions.UpdateEntities, data.id, data.entities),
-            [BackendEvents.EnvAddFiles]: data => this.dispatch(ReduxActions.AddMultipleFiles, data.id, data.files),
+            [BackendEvents.EnvAddFiles]: data => this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, [data.file]),
             [BackendEvents.EnvTagFiles]: data => this.dispatch(ReduxActions.TagFiles, data.id, data),
             [BackendEvents.EnvUntagFiles]: data => this.dispatch(ReduxActions.UntagFiles, data.id, data),
             [BackendEvents.EnvThumbUpdates]: data => this.dispatch(ReduxActions.UpdateThumbStates, data.id, data),
@@ -140,9 +140,9 @@ export default class DataManager {
         return window.ipcModule.getDirectoryContents({id: data.id, path: data.path})
             .then(result => {
                 const {directory, files} = result;
-                this.dispatch(ReduxActions.SetMultipleFileDetails, data.id, files);
+                this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, files);
 
-                const actionData = {directory, files: _.map(files, f => f.hash)};
+                const actionData = {directory, fileHashes: _.map(files, f => f.hash)};
                 this.dispatch(ReduxActions.SetDirectoryContent, data.id, actionData);
                 return null;
             });
@@ -180,7 +180,25 @@ export default class DataManager {
         return Promise.all(promises)
             .then(chunks => {
                 const entityFiles = _.flattenDeep(chunks);
-                this.dispatch(ReduxActions.SetMultipleFileDetails, data.id, entityFiles);
+                const newFileQueue = new Denque();
+                const badHashQueue = new Denque();
+                for (let i = 0; i < entityFiles.length; ++i) {
+                    const file = entityFiles[i];
+                    if (_.isNumber(file)) {
+                        if (file === FileErrorStatus.FileDoesntExist) {
+                            const badHash = data.hashes[i];
+                            console.warn(`Encountered FileDoestExist code, hash: ${badHash}`);
+                            badHashQueue.push(badHash);
+                        } else {
+                            console.warn(`Encountered unknown FileErrorStatus code: ${file}`);
+                        }
+                    } else {
+                        newFileQueue.push(file);
+                    }
+                }
+
+                this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, badHashQueue.toArray());
+                this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, newFileQueue.toArray());
                 return null;
             });
     }
