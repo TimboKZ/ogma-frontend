@@ -17,14 +17,14 @@ import {createSelector} from 'reselect';
 import ReactTags from 'react-tag-autocomplete';
 import {hideAllContextMenus} from 'react-context-menu-wrapper';
 
-import Icon from './Icon';
-import Util from '../../util/Util';
-import ModalUtil from '../../util/ModalUtil';
-import {createDeepEqualSelector} from '../../redux/Selector';
-import {EnvironmentContext, EnvRoutePaths} from '../../util/typedef';
+import Icon from '../Icon';
+import Util from '../../../util/Util';
+import ModalUtil from '../../../util/ModalUtil';
+import {createDeepEqualSelector} from '../../../redux/Selector';
+import {EnvironmentContext, EnvRoutePaths} from '../../../util/typedef';
 
 
-class TagContextMenu extends React.Component {
+class FileContextMenu extends React.Component {
 
     // noinspection JSUnusedGlobalSymbols
     static contextType = EnvironmentContext;
@@ -355,4 +355,4 @@ export default connect((state, ownProps) => {
         tags: getTags(state, ownProps),
         ...getFilesEntityIdsSelectedTags(state, ownProps),
     };
-})(TagContextMenu);
+})(FileContextMenu);

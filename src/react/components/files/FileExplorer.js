@@ -20,7 +20,7 @@ import FileList from './FileList';
 import Util from '../../../util/Util';
 import FilePreview from './FilePreview';
 import FileStatusBar from './FileStatusBar';
-import TagContextMenu from '../TagContextMenu';
+import FileContextMenu from './FileContextMenu';
 import {createDeepEqualSelector} from '../../../redux/Selector';
 import {EnvSummaryPropType, ExplorerOptions, ExplorerOptionsDefaults, FileView, KeyCode} from '../../../util/typedef';
 
@@ -298,27 +298,29 @@ class FileExplorer extends React.Component {
 
     handleContextMenuShow = hash => {
         this.setState(prevState => {
-            const newState = {contextFileHash: hash};
-
             const oldSel = prevState.selection;
             const oldSelSize = _.size(oldSel);
             if (oldSelSize <= 1) {
-                newState.selection = {};
-                newState.selection[hash] = true;
+                return {
+                    selection: {[hash]: true},
+                };
             }
-
-            return newState;
+            return null;
         });
     };
 
     render() {
         const {badHashes, contextMenuId, changePath} = this.props;
-        const {filter, slimFiles, fileHashes, selection, options, showPreview, contextFileHash} = this.state;
+        const {filter, slimFiles, fileHashes, selection, options, showPreview} = this.state;
 
         const fileCount = fileHashes ? fileHashes.length : -1;
         const hiddenCount = (slimFiles ? slimFiles.length : -1) - fileCount;
         const selectionSize = _.size(selection);
         const loadingCount = badHashes.length;
+
+        const renderContextMenu = hash =>
+            <FileContextMenu id={contextMenuId} fileHash={hash} changePath={changePath} summary={this.summary}
+                             selection={selection} confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}/>;
 
         return (
             <div className="file-explorer">
@@ -337,11 +339,8 @@ class FileExplorer extends React.Component {
 
                 {showPreview && <FilePreview/>}
 
-                <ContextMenuWrapper id={contextMenuId} hideOnSelfClick={false} onShow={this.handleContextMenuShow}>
-                    <TagContextMenu id={contextMenuId} fileHash={contextFileHash} changePath={changePath}
-                                    summary={this.summary} selection={selection}
-                                    confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}/>
-                </ContextMenuWrapper>
+                <ContextMenuWrapper id={contextMenuId} hideOnSelfClick={false} onShow={this.handleContextMenuShow}
+                                    render={renderContextMenu}/>
             </div>
         );
     };
