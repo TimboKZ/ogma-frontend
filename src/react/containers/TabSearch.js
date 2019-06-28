@@ -100,6 +100,7 @@ class TabSearch extends React.Component {
             }
             relevantEntityIds = relevantEntities.map(e => e.id);
         }
+        relevantEntityIds = relevantEntityIds.filter(id => !entityMap[id].isDir);
         const goodHashes = relevantEntityIds.map(id => entityMap[id].hash);
         const badIndices = _.keys(_.pickBy(goodHashes, h => !fileMap[h]));
 
@@ -166,7 +167,7 @@ class TabSearch extends React.Component {
     }
 
     render() {
-        const {tagIds, selectedTagsMap} = this.props;
+        const {tagIds, selectedTagsMap, history} = this.props;
         const {goodHashes, entitiesToBeLoaded} = this.state;
         const [selectedTags, availableTags] = _.partition(tagIds, id => !!selectedTagsMap[id]);
 
@@ -184,7 +185,8 @@ class TabSearch extends React.Component {
             </div>
 
             <FileExplorer summary={this.summary} fileHashes={goodHashes} loadingCount={entitiesToBeLoaded.length}
-                          changePath={this.changePath} contextMenuId={MenuIds.TabSearch}/>
+                          changePath={this.changePath} contextMenuId={MenuIds.TabSearch} allowShowInBrowseTab={true}
+                          history={history}/>
         </React.Fragment>;
     };
 

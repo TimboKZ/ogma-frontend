@@ -165,24 +165,38 @@ class FileContextMenu extends React.Component {
     }
 
     renderTagOptions() {
-        const files = this.props.files;
+        const {files, tags} = this.props;
         const fileCount = files.length;
         if (fileCount === 0) return null;
 
-        const hasFolders = _.findIndex(files, f => f.isDir) !== -1;
+        let hasFiles = false;
+        let hasFolders = false;
+        let hasMixed = false;
+        for (const file of files) {
+            if (file.isDir) hasFolders = true;
+            else hasFiles = true;
+            if (hasFiles && hasFolders) {
+                hasMixed = true;
+                break;
+            }
+        }
 
-        if (hasFolders) {
-            return <div className="dropdown-item">
-                <p><Icon name="exclamation-triangle"/> Your selection contains folders. Folder tagging is not supported
-                    yet.</p>
+        if (hasMixed) {
+            return <div className="dropdown-item" style={{color: '#857700'}}>
+                <p><Icon name="exclamation-triangle"/> Tagging is not supported for mixed selections (files & folders).
+                </p>
             </div>;
         }
 
-        return <div style={{zIndex: 2}}>
-            <ReactTags tags={this.state.selectedTags} suggestions={this.props.tags}
-                       handleDelete={this.handleTagDeletion} handleAddition={this.handleTagAddition} minQueryLength={1}
-                       allowNew={true} allowBackspace={false} placeholder="Add tag"/>
-        </div>;
+        if (hasFolders && !hasFiles) {
+            return <ReactTags tags={this.state.selectedTags} suggestions={tags} handleDelete={this.handleTagDeletion}
+                              handleAddition={this.handleTagAddition} minQueryLength={1} allowNew={true}
+                              allowBackspace={false} placeholder="Add sink"/>;
+        }
+
+        return <ReactTags tags={this.state.selectedTags} suggestions={tags} handleDelete={this.handleTagDeletion}
+                          handleAddition={this.handleTagAddition} minQueryLength={1} allowNew={true}
+                          allowBackspace={false} placeholder="Add tag"/>;
     }
 
     renderFileOptions() {
@@ -190,15 +204,24 @@ class FileContextMenu extends React.Component {
         const fileCount = files.length;
         if (fileCount === 0) return null;
 
+        let hasFiles = false;
+        let hasFolders = false;
+        for (const file of files) {
+            if (file.isDir) hasFolders = true;
+            else hasFiles = true;
+            if (hasFiles && hasFolders) {
+                break;
+            }
+        }
+
         const s = this.summary;
         const ipc = window.ipcModule;
         const isMult = files.length > 1;
-        const hasFolders = _.findIndex(files, f => f.isDir) !== -1;
 
         const firstFile = files[0];
         const firstFileReqData = {id: s.id, path: firstFile.nixPath};
 
-        const buttons = new Array(5);
+        const buttons = new Array(6);
 
         if (!isMult) {
             const file = firstFile;
@@ -221,6 +244,26 @@ class FileContextMenu extends React.Component {
                 };
             }
 
+        }
+
+        if (window.dataManager.isLocalClient()) {
+            buttons[2] = {
+                icon: 'external-link-alt', name: 'Show in files',
+                onClick: this.getHandler(() => ipc.openInExplorer(firstFileReqData), true),
+            };
+        }
+
+        if (hasFiles && !hasFolders) {
+            const suf = fileCount === 1 ? '' : 's';
+            const sendSinkData = {id: s.id, paths: files.map(f => f.nixPath)};
+            buttons[3] = {
+                icon: 'filter', name: `Move file${suf} to relevant sink${suf}`,
+                onClick: this.getHandler(() => ipc.moveFilesToSink(sendSinkData), true),
+            };
+        }
+
+        if (!isMult) {
+            const file = firstFile;
             const renameClick = () => {
                 // noinspection JSUnusedGlobalSymbols
                 return ModalUtil.fire({
@@ -240,14 +283,7 @@ class FileContextMenu extends React.Component {
                     allowOutsideClick: () => !Swal.isLoading(),
                 });
             };
-            buttons[3] = {icon: 'i-cursor', name: 'Rename', onClick: this.getHandler(renameClick, true)};
-        }
-
-        if (window.dataManager.isLocalClient()) {
-            buttons[2] = {
-                icon: 'external-link-alt', name: 'Show in files',
-                onClick: this.getHandler(() => ipc.openInExplorer(firstFileReqData), true),
-            };
+            buttons[4] = {icon: 'i-cursor', name: 'Rename', onClick: this.getHandler(renameClick, true)};
         }
 
         const removeFunc = () => {
@@ -284,7 +320,7 @@ class FileContextMenu extends React.Component {
                     return ipc.removeFiles({id: s.id, paths: _.map(files, f => f.nixPath)});
                 });
         };
-        buttons[4] = {
+        buttons[5] = {
             icon: 'trash', name: 'Move to trash',
             onClick: this.getHandler(removeFunc, true),
         };
@@ -304,7 +340,7 @@ class FileContextMenu extends React.Component {
 
                 <div className="dropdown-menu" id="dropdown-menu" role="menu">
                     <div className="dropdown-content">
-                        {this.renderTagOptions()}
+                        <div style={{position: 'relative', zIndex: 2}}>{this.renderTagOptions()}</div>
                         <hr className="dropdown-divider"/>
                         {this.renderFileOptions()}
                     </div>

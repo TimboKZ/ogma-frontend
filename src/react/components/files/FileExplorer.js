@@ -42,15 +42,18 @@ class FileExplorer extends React.Component {
         slimFiles: PropTypes.arrayOf(PropTypes.object),
 
         // Props passed by parent
+        history: PropTypes.object,
         changePath: PropTypes.func,
         showPreview: PropTypes.bool,
         loadingCount: PropTypes.number,
         contextMenuId: PropTypes.string,
+        allowShowInBrowseTab: PropTypes.bool,
     };
 
     static defaultProps = {
         showPreview: false,
         loadingCount: 0,
+        allowShowInBrowseTab: false,
     };
 
     constructor(props) {
@@ -300,7 +303,7 @@ class FileExplorer extends React.Component {
     };
 
     render() {
-        const {loadingCount, contextMenuId, changePath} = this.props;
+        const {changePath, loadingCount, contextMenuId, allowShowInBrowseTab, history} = this.props;
         const {filter, slimFiles, fileHashes, selection, options, showPreview} = this.state;
 
         const fileCount = fileHashes ? fileHashes.length : -1;
@@ -309,7 +312,8 @@ class FileExplorer extends React.Component {
 
         const renderContextMenu = hash =>
             <FileContextMenu id={contextMenuId} fileHash={hash} changePath={changePath} summary={this.summary}
-                             selection={selection} confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}/>;
+                             selection={selection} confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}
+                             allowShowInBrowseTab={allowShowInBrowseTab} history={history}/>;
 
         return (
             <div className="file-explorer">

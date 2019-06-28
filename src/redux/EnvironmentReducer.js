@@ -38,26 +38,24 @@ export const environmentReducer = createReducer({}, {
         return {...state, tagIds: _.union(state.tagIds, newTagIds), tagMap};
     },
     [ReduxActions.TagFiles]: (state, action) => {
-        const {hashes, entityIds, tagIds} = action.data;
+        const {entities: slimEntities, tagIds} = action.data;
         let {fileMap, entityMap} = state;
         fileMap = {...fileMap};
         entityMap = {...entityMap};
-        for (let i = 0; i < hashes.length; ++i) {
-            const hash = hashes[i];
-            const entityId = entityIds[i];
-            const oldEntity = entityMap[entityId];
+        for (let i = 0; i < slimEntities.length; ++i) {
+            const slimEntity = slimEntities[i];
+            const oldEntity = entityMap[slimEntity.id];
             const oldTagIds = oldEntity ? oldEntity.tagIds : null;
-            entityMap[entityId] = {
+            entityMap[slimEntity.id] = {
                 ...oldEntity,
-                id: entityId,
-                hash,
+                ...slimEntity,
                 tagIds: _.union(oldTagIds, tagIds),
             };
-            const oldFile = fileMap[hash];
+            const oldFile = fileMap[slimEntity.hash];
             if (!oldFile) continue;
-            fileMap[hash] = {
+            fileMap[slimEntity.hash] = {
                 ...oldFile,
-                entityId,
+                entityId: slimEntity.id,
             };
         }
         return {...state, fileMap, entityMap};
@@ -162,7 +160,7 @@ export const environmentReducer = createReducer({}, {
                 fileHashes: _.union(fileHashes, dirHashMap[dirHash]),
             };
         }
-        
+
         return {...state, fileMap, entityMap};
     },
     [ReduxActions.RemoveMultipleFiles]: (state, action) => {

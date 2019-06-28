@@ -58,6 +58,7 @@ export const EnvRoutePaths = {
     browse: '/browse',
     search: '/search',
     tags: '/tags',
+    sinks: '/sinks',
     configure: '/configure',
 };
 export const DefaultEnvRoutePath = EnvRoutePaths.browse;
