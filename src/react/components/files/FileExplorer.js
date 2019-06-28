@@ -40,16 +40,17 @@ class FileExplorer extends React.Component {
 
         // Props provided by redux.connect
         slimFiles: PropTypes.arrayOf(PropTypes.object),
-        badHashes: PropTypes.arrayOf(PropTypes.string).isRequired,
 
         // Props passed by parent
         changePath: PropTypes.func,
         showPreview: PropTypes.bool,
+        loadingCount: PropTypes.number,
         contextMenuId: PropTypes.string,
     };
 
     static defaultProps = {
         showPreview: false,
+        loadingCount: 0,
     };
 
     constructor(props) {
@@ -115,20 +116,14 @@ class FileExplorer extends React.Component {
     }
 
     componentDidMount() {
-        const {path, badHashes} = this.props;
+        const {path: currPath} = this.props;
         const {slimFiles} = this.state;
         const dm = window.dataManager;
-        if (path) {
+        if (currPath) {
             const selection = {};
             this.setState({selection});
             Promise.resolve()
-                .then(() => dm.requestDirectoryContent({id: this.summary.id, path, wasCached: !!slimFiles}))
-                .catch(window.handleError);
-        }
-
-        if (badHashes && badHashes.length !== 0) {
-            Promise.resolve()
-                .then(() => dm.getEntityFiles({id: this.summary.id, hashes: badHashes}))
+                .then(() => dm.requestDirectoryContent({id: this.summary.id, path: currPath, wasCached: !!slimFiles}))
                 .catch(window.handleError);
         }
 
@@ -140,17 +135,12 @@ class FileExplorer extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        const {path, slimFiles, badHashes} = this.props;
+        const {path: currPath, slimFiles} = this.props;
 
-        if (path !== prevProps.path) {
+        if (currPath !== prevProps.path) {
             const selection = {};
             this.setState({selection});
-            window.dataManager.requestDirectoryContent({id: this.summary.id, path, wasCached: !!slimFiles})
-                .catch(window.handleError);
-        }
-
-        if (!equal(badHashes, prevProps.badHashes) && badHashes.length !== 0) {
-            window.dataManager.getEntityFiles({id: this.summary.id, hashes: badHashes})
+            window.dataManager.requestDirectoryContent({id: this.summary.id, path: currPath, wasCached: !!slimFiles})
                 .catch(window.handleError);
         }
     }
@@ -310,13 +300,12 @@ class FileExplorer extends React.Component {
     };
 
     render() {
-        const {badHashes, contextMenuId, changePath} = this.props;
+        const {loadingCount, contextMenuId, changePath} = this.props;
         const {filter, slimFiles, fileHashes, selection, options, showPreview} = this.state;
 
         const fileCount = fileHashes ? fileHashes.length : -1;
         const hiddenCount = (slimFiles ? slimFiles.length : -1) - fileCount;
         const selectionSize = _.size(selection);
-        const loadingCount = badHashes.length;
 
         const renderContextMenu = hash =>
             <FileContextMenu id={contextMenuId} fileHash={hash} changePath={changePath} summary={this.summary}
@@ -329,7 +318,7 @@ class FileExplorer extends React.Component {
                                selectionSize={selectionSize} loadingCount={loadingCount}
                                options={options} onOptionChange={this.onOptionChange}/>
 
-                <FileList summary={this.summary} fileHashes={fileHashes} badHashes={badHashes}
+                <FileList summary={this.summary} fileHashes={fileHashes}
                           selection={selection} contextMenuId={contextMenuId}
                           view={options[ExplorerOptions.FileView]}
                           showExtensions={options[ExplorerOptions.ShowExtensions]}
@@ -351,7 +340,7 @@ const getFileMap = (state, props) => state.envMap[props.summary.id].fileMap;
 const getData = (_, props) => ({path: props.path, fileHashes: props.fileHashes});
 const getFileHashes = createSelector([getFileMap, getData], (fileMap, data) => {
     const {path, fileHashes} = data;
-    if (path === null || path === undefined) return fileHashes;
+    if (!path && path !== '') return fileHashes;
 
     const dirFile = fileMap[Util.getFileHash(path)];
     if (dirFile) return dirFile.fileHashes;
@@ -359,20 +348,15 @@ const getFileHashes = createSelector([getFileMap, getData], (fileMap, data) => {
 });
 const getSlimFiles = createSelector([getFileMap, getFileHashes], (fileMap, fileHashes) => {
     let slimFiles = null;
-    let badHashes = [];
     if (fileHashes) {
         const files = fileHashes.map(h => fileMap[h]);
-        const badIndices = _.keys(_.pickBy(files, f => !f));
-        badHashes = _.at(fileHashes, badIndices);
-
-        _.pullAt(files, badIndices);
         slimFiles = files.map(f => ({
             hash: f.hash,
             base: f.base,
             isDir: f.isDir,
         }));
     }
-    return {slimFiles, badHashes};
+    return {slimFiles};
 });
 const getSlimFilesDeep = createDeepEqualSelector([getSlimFiles], data => data);
 

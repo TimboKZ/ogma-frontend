@@ -5,30 +5,28 @@
  */
 
 import React from 'react';
-import {detailedDiff} from 'deep-object-diff';
+
+import Util from '../../util/Util';
 
 /**
  * @param {React.Component} WrappedComponent
  * @param {function(props: string): string} [getId]
  */
 export default function withPropChecker(WrappedComponent, getId = null) {
+    let counter = 1;
     return class PropsChecker extends React.Component {
-        componentDidUpdate(prevProps) {
+        componentDidUpdate(prevProps, prevState, snapshot) {
             let id = '[...]';
-            if (getId) id = `[${getId(this.props)}]`;
+            if (getId) id = `[${getId(this.props)} ${counter++}]`;
+            const shallowKeys = Util.getShallowDiffKeys(prevProps, this.props, id);
+            const deepKeys = Util.getDeepDiffKeys(prevProps, this.props, id);
+            
+            const shallowChangeMap = {};
+            shallowKeys.map(k => shallowChangeMap[k] = Util.getShallowDiffKeys(prevProps[k], this.props[k]))
 
-            Object.keys(prevProps)
-                .filter(key => prevProps[key] !== this.props[key])
-                .map(key => {
-                    const diff = detailedDiff(prevProps[key], this.props[key]);
-                    console.log(
-                        id, 'Changed property:', key,
-                        'updated:', diff.updated,
-                        'added:', diff.added,
-                        'deleted:', diff.deleted,
-                    );
-                    return null;
-                });
+            console.log(id, 'Shallow changes:', shallowChangeMap);
+            console.log(id, 'Deep changes:', deepKeys);
+            Util.printDeepObjectDiffs(prevProps, this.props, id, deepKeys);
         }
 
         render() {

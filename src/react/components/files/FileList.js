@@ -24,7 +24,7 @@ class FileList extends React.Component {
         view: PropTypes.number.isRequired,
         summary: EnvSummaryPropType.isRequired,
         fileHashes: PropTypes.arrayOf(PropTypes.string),
-        badHashes: PropTypes.arrayOf(PropTypes.string).isRequired,
+        loadingCount: PropTypes.number,
         selection: PropTypes.object.isRequired,
         contextMenuId: PropTypes.string,
         showExtensions: PropTypes.bool.isRequired,
@@ -40,12 +40,12 @@ class FileList extends React.Component {
 
     renderFiles() {
         const {
-            fileHashes, badHashes, showExtensions, collapseLongNames, selection, contextMenuId,
+            fileHashes, loadingCount, showExtensions, collapseLongNames, selection, contextMenuId,
             handleSingleClick, handleDoubleClick, view,
         } = this.props;
 
         const empty = fileHashes && fileHashes.length === 0;
-        const loading = !fileHashes || (empty && badHashes.length > 0);
+        const loading = !fileHashes || (empty && loadingCount > 0);
 
         if (loading) return <div className="file-list-text"><Icon name="cog" animation={true}/> Loading...</div>;
         else if (empty) return <div className="file-list-text">No files to show.</div>;

@@ -16,10 +16,12 @@ import {
     ReduxActions,
     TagSearchCondition,
 } from '../../util/typedef';
+import Util from '../../util/Util';
 import Tabs from '../components/Tabs';
 import Icon from '../components/Icon';
 import TagGroup from '../components/TagGroup';
 import FileExplorer from '../components/files/FileExplorer';
+import {createShallowEqualObjectSelector} from '../../redux/Selector';
 
 const SearchConditionOptions = [
     {id: TagSearchCondition.All, name: 'All'},
@@ -43,15 +45,68 @@ class TabSearch extends React.Component {
 
     constructor(props) {
         super(props);
+        /** @type {EnvSummary} */
         this.summary = props.summary;
 
         this.state = {
-            selection: {},
-            contextFileHash: null,
             tagFilter: props.tagFilter,
+            ...this.extractGoodHashesAndLoadingList(),
         };
         this.debouncedTagFilterDispatch = _.debounce(tagFilter =>
             window.dataManager.dispatch(ReduxActions.TabSearchChangeTagFilter, this.summary.id, tagFilter), 100);
+    }
+
+    componentDidMount() {
+        const {entitiesToBeLoaded} = this.state;
+        if (entitiesToBeLoaded.length !== 0) {
+            window.dataManager.requestEntityFiles({id: this.summary.id, entityIds: entitiesToBeLoaded})
+                .catch(window.handleError);
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        /** @type {string[]} */
+        const {entitiesToBeLoaded} = this.state;
+        if (!Util.shallowEqual(entitiesToBeLoaded, prevState.entitiesToBeLoaded) && entitiesToBeLoaded.length !== 0) {
+            window.dataManager.requestEntityFiles({id: this.summary.id, entityIds: entitiesToBeLoaded})
+                .catch(window.handleError);
+        }
+
+        if (!Util.shallowEqual(this.props, prevProps)) {
+            this.setState({...this.extractGoodHashesAndLoadingList()});
+        }
+    }
+
+    /**
+     * @returns {{goodHashes: string[], entitiesToBeLoaded: string[]}}
+     */
+    extractGoodHashesAndLoadingList() {
+        const {entityMap, fileMap, selectedTagsMap, tagSearchCondition} = this.props;
+        const selectedTagCount = _.size(selectedTagsMap);
+
+        let relevantEntityIds;
+        if (selectedTagCount === 0) {
+            relevantEntityIds = Object.keys(entityMap);
+        } else {
+            const entities = Object.values(entityMap);
+            let relevantEntities;
+            if (tagSearchCondition === TagSearchCondition.Any) {
+                relevantEntities = entities.filter(e => e.tagIds.some(id => !!selectedTagsMap[id]));
+            } else if (tagSearchCondition === TagSearchCondition.All) {
+                const selectedTagIds = Object.keys(selectedTagsMap);
+                relevantEntities = entities.filter(e => _.intersection(e.tagIds, selectedTagIds).length === selectedTagCount);
+            } else {
+                console.warn('Unknown "tagSearchCondition" specified in TabSearch!');
+            }
+            relevantEntityIds = relevantEntities.map(e => e.id);
+        }
+        const goodHashes = relevantEntityIds.map(id => entityMap[id].hash);
+        const badIndices = _.keys(_.pickBy(goodHashes, h => !fileMap[h]));
+
+        _.pullAt(goodHashes, badIndices);
+        const entitiesToBeLoaded = _.at(relevantEntityIds, badIndices);
+        // noinspection JSValidateTypes
+        return {goodHashes, entitiesToBeLoaded};
     }
 
     selectTag = tagId => {
@@ -111,28 +166,9 @@ class TabSearch extends React.Component {
     }
 
     render() {
-        const {tagIds, entityMap, fileMap, selectedTagsMap, tagSearchCondition} = this.props;
+        const {tagIds, selectedTagsMap} = this.props;
+        const {goodHashes, entitiesToBeLoaded} = this.state;
         const [selectedTags, availableTags] = _.partition(tagIds, id => !!selectedTagsMap[id]);
-        const selectedTagCount = _.size(selectedTagsMap);
-
-        let relevantEntityIds;
-        if (selectedTagCount === 0) {
-            relevantEntityIds = Object.keys(entityMap);
-        } else {
-            const entities = Object.values(entityMap);
-            let relevantEntities;
-            if (tagSearchCondition === TagSearchCondition.Any) {
-                relevantEntities = entities.filter(e => e.tagIds.some(id => !!selectedTagsMap[id]));
-            } else if (tagSearchCondition === TagSearchCondition.All) {
-                const selectedTagIds = Object.keys(selectedTagsMap);
-                relevantEntities = entities.filter(e => _.intersection(e.tagIds, selectedTagIds).length === selectedTagCount);
-            } else {
-                console.warn('Unknown "tagSearchCondition" specified in TabSearch!');
-            }
-            relevantEntityIds = relevantEntities.map(e => e.id);
-        }
-        const hashes = relevantEntityIds.map(id => entityMap[id].hash);
-        const [goodHashes, badHashes] = _.partition(hashes, h => !!fileMap[h]);
 
         return <React.Fragment>
             <Helmet><title>Search</title></Helmet>
@@ -147,19 +183,23 @@ class TabSearch extends React.Component {
                 </div>
             </div>
 
-            <FileExplorer summary={this.summary} fileHashes={hashes} changePath={this.changePath}
-                          contextMenuId={MenuIds.TabSearch}/>
+            <FileExplorer summary={this.summary} fileHashes={goodHashes} loadingCount={entitiesToBeLoaded.length}
+                          changePath={this.changePath} contextMenuId={MenuIds.TabSearch}/>
         </React.Fragment>;
     };
 
 }
 
+const getEntityMap = (state, props) => state.envMap[props.summary.id].entityMap;
+const getFileMap = (state, props) => state.envMap[props.summary.id].fileMap;
+const getShallowEntityMap = createShallowEqualObjectSelector(getEntityMap, data => data);
+const getShallowFileMap = createShallowEqualObjectSelector(getFileMap, data => data);
 export default connect((state, ownProps) => {
-    const {tagIds, entityMap, fileMap, tabSearch} = state.envMap[ownProps.summary.id];
+    const {tagIds, tabSearch} = state.envMap[ownProps.summary.id];
     return {
         tagIds,
-        entityMap,
-        fileMap,
+        entityMap: getShallowEntityMap(state, ownProps),
+        fileMap: getShallowFileMap(state, ownProps),
         ...tabSearch,
     };
 })(TabSearch);

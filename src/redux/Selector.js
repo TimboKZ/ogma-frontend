@@ -1,13 +1,20 @@
 /**
  * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
  * @copyright 2019
- * @license LGPL-3.0
+ * @license GPL-3.0
  */
 
-import equal from 'fast-deep-equal';
+import deepEqual from 'fast-deep-equal';
 import {createSelectorCreator, defaultMemoize} from 'reselect';
+
+import Util from '../util/Util';
 
 export const createDeepEqualSelector = createSelectorCreator(
     defaultMemoize,
-    equal,
+    deepEqual,
+);
+
+export const createShallowEqualObjectSelector = createSelectorCreator(
+    defaultMemoize,
+    Util.shallowEqual,
 );

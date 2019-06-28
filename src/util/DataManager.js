@@ -172,11 +172,11 @@ export default class DataManager {
     /**
      * @param {object} data
      * @param {string} data.id Environment ID
-     * @param {string} data.hashes File hashes that came from entities
+     * @param {string[]} data.entityIds Entity IDs for each file details will be fetched
      */
-    getEntityFiles(data) {
-        const chunks = _.chunk(data.hashes, 75);
-        const promises = chunks.map(ch => window.ipcModule.getEntityFiles({id: data.id, hashes: ch}));
+    requestEntityFiles(data) {
+        const chunks = _.chunk(data.entityIds, 75);
+        const promises = chunks.map(ch => window.ipcModule.getEntityFiles({id: data.id, entityIds: ch}));
         return Promise.all(promises)
             .then(chunks => {
                 const entityFiles = _.flattenDeep(chunks);
@@ -185,10 +185,11 @@ export default class DataManager {
                 for (let i = 0; i < entityFiles.length; ++i) {
                     const file = entityFiles[i];
                     if (_.isNumber(file)) {
+                        const badEntityIds = data.entityIds[i];
                         if (file === FileErrorStatus.FileDoesntExist) {
-                            const badHash = data.hashes[i];
-                            console.warn(`Encountered FileDoestExist code, hash: ${badHash}`);
-                            badHashQueue.push(badHash);
+                            console.warn(`Encountered FileDoesntExist code, entity ID: ${badEntityIds}`);
+                        } else if (file === FileErrorStatus.EntityDoesntExist) {
+                            console.warn(`Encountered EntityDoesntExist code, entity ID: ${badEntityIds}`);
                         } else {
                             console.warn(`Encountered unknown FileErrorStatus code: ${file}`);
                         }

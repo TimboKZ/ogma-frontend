@@ -7,6 +7,7 @@
 import md5 from 'md5';
 import _ from 'lodash';
 import Promise from 'bluebird';
+import deepEqual from 'fast-deep-equal';
 import {detailedDiff} from 'deep-object-diff';
 
 import {ExplorerOptions, SortOrder} from './typedef';
@@ -81,26 +82,54 @@ export default class Util {
         return obj;
     }
 
-    static getShallowDiffKeys(a, b) {
-        const diffKeys = Object.keys(a).filter(key => a[key] !== b[key]);
-        return diffKeys;
+    static shallowEqual(a, b) {
+        const allKeys = _.union(Object.keys(a), Object.keys(b));
+        for (const key of allKeys) {
+            if (a[key] !== b[key]) return false;
+        }
+        return true;
     }
 
-    static printObjectDiffs(a, b, id = '') {
-        Object.keys(a)
-            .filter(key => a[key] !== b[key])
-            .map(key => {
-                const diff = detailedDiff(a[key], b[key]);
-                console.log(
-                    id,
-                    'Changed property:', key,
-                    'updated:', diff.updated,
-                    'added:', diff.added,
-                    'deleted:', diff.deleted,
-                )
-                ;
-                return null;
-            });
+    static getShallowDiffKeys(a, b) {
+        const allKeys = _.union(Object.keys(a), Object.keys(b));
+        return allKeys.filter(key => a[key] !== b[key]);
+    }
+
+    static printShallowObjectDiffs(a, b, id = '', keys = null) {
+        if (!keys) keys = Util.getShallowDiffKeys(a, b);
+        keys.map(key => {
+            const diff = detailedDiff(a[key], b[key]);
+            console.log(
+                id,
+                'Changed property:', key,
+                'updated:', diff.updated,
+                'added:', diff.added,
+                'deleted:', diff.deleted,
+            )
+            ;
+            return null;
+        });
+    }
+
+    static getDeepDiffKeys(a, b) {
+        const allKeys = _.union(Object.keys(a), Object.keys(b));
+        return allKeys.filter(key => !deepEqual(a[key], b[key]));
+    }
+
+    static printDeepObjectDiffs(a, b, id = '', keys = null) {
+        if (!keys) keys = Util.getDeepDiffKeys(a, b);
+        keys.map(key => {
+            const diff = detailedDiff(a[key], b[key]);
+            console.log(
+                id,
+                'Changed property:', key,
+                'updated:', diff.updated,
+                'added:', diff.added,
+                'deleted:', diff.deleted,
+            )
+            ;
+            return null;
+        });
     }
 
     static sortFiles(unsortedFiles, options) {
