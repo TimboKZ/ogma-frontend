@@ -39,16 +39,27 @@ export default class DataManager {
         const listenerMap = {
             [BackendEvents.AddConnection]: client => this.dispatch(ReduxActions.AddConnection, client),
             [BackendEvents.RemoveConnection]: clientId => this.dispatch(ReduxActions.RemoveConnection, clientId),
+
             [BackendEvents.UpdateEnvSummaries]: summaries => this.dispatch(ReduxActions.UpdateSummaries, summaries),
             [BackendEvents.UpdateEnvSummary]: summary => this.dispatch(ReduxActions.UpdateSummary, summary.id, summary),
-            [BackendEvents.EnvRemoveFiles]: data => this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, data.hashes),
-            [BackendEvents.EnvAddTags]: data => this.dispatch(ReduxActions.AddNewTags, data.id, data.tags),
+
+            [BackendEvents.EnvAddEntities]: data => null,
+            [BackendEvents.EnvRemoveEntities]: data => null,
             [BackendEvents.EnvUpdateEntities]: data => this.dispatch(ReduxActions.UpdateEntities, data.id, data.entities),
+
             [BackendEvents.EnvAddFiles]: data => this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, [data.file]),
+            [BackendEvents.EnvRemoveFiles]: data => this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, data.hashes),
+            [BackendEvents.EnvUpdateThumbs]: data => this.dispatch(ReduxActions.UpdateThumbStates, data.id, data),
+
+            [BackendEvents.EnvAddTags]: data => this.dispatch(ReduxActions.AddNewTags, data.id, data.tags),
             [BackendEvents.EnvTagFiles]: data => this.dispatch(ReduxActions.TagFiles, data.id, data),
             [BackendEvents.EnvUntagFiles]: data => this.dispatch(ReduxActions.UntagFiles, data.id, data),
-            [BackendEvents.EnvThumbUpdates]: data => this.dispatch(ReduxActions.UpdateThumbStates, data.id, data),
         };
+        for (const eventName in BackendEvents) {
+            if (!listenerMap[BackendEvents[eventName]]) {
+                console.warn(`Backend event "${eventName}" does not have a listener `)
+            }
+        }
         this.emitter.on('*', function (...args) {
             const eventName = this.event;
             const listener = listenerMap[eventName];

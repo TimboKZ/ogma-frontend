@@ -24,7 +24,7 @@ import {createDeepEqualSelector} from '../../../redux/Selector';
 import {EnvironmentContext, EnvRoutePaths} from '../../../util/typedef';
 
 
-class FileContextMenu extends React.Component {
+class FileEntryMenu extends React.Component {
 
     // noinspection JSUnusedGlobalSymbols
     static contextType = EnvironmentContext;
@@ -45,6 +45,7 @@ class FileContextMenu extends React.Component {
         id: PropTypes.string.isRequired,
         history: PropTypes.object,
         changePath: PropTypes.func,
+        createFolder: PropTypes.func,
         allowShowInBrowseTab: PropTypes.bool,
         confirmDeletions: PropTypes.bool.isRequired,
     };
@@ -391,4 +392,4 @@ export default connect((state, ownProps) => {
         tags: getTags(state, ownProps),
         ...getFilesEntityIdsSelectedTags(state, ownProps),
     };
-})(FileContextMenu);
+})(FileEntryMenu);

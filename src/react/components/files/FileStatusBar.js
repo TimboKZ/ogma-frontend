@@ -28,6 +28,7 @@ export default class FileStatusBar extends React.Component {
 
     static propTypes = {
         // Props passed by parent
+        createFolder: PropTypes.func,
         filter: PropTypes.string.isRequired,
         onFilerChange: PropTypes.func.isRequired,
         fileCount: PropTypes.number.isRequired,

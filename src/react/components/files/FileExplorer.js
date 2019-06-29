@@ -20,7 +20,7 @@ import FileList from './FileList';
 import Util from '../../../util/Util';
 import FilePreview from './FilePreview';
 import FileStatusBar from './FileStatusBar';
-import FileContextMenu from './FileContextMenu';
+import FileEntryMenu from './FileEntryMenu';
 import {createDeepEqualSelector} from '../../../redux/Selector';
 import {EnvSummaryPropType, ExplorerOptions, ExplorerOptionsDefaults, FileView, KeyCode} from '../../../util/typedef';
 
@@ -44,6 +44,7 @@ class FileExplorer extends React.Component {
         // Props passed by parent
         history: PropTypes.object,
         changePath: PropTypes.func,
+        createFolder: PropTypes.func,
         showPreview: PropTypes.bool,
         loadingCount: PropTypes.number,
         contextMenuId: PropTypes.string,
@@ -311,9 +312,9 @@ class FileExplorer extends React.Component {
         const selectionSize = _.size(selection);
 
         const renderContextMenu = hash =>
-            <FileContextMenu id={contextMenuId} fileHash={hash} changePath={changePath} summary={this.summary}
-                             selection={selection} confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}
-                             allowShowInBrowseTab={allowShowInBrowseTab} history={history}/>;
+            <FileEntryMenu id={contextMenuId} fileHash={hash} changePath={changePath} summary={this.summary}
+                           selection={selection} confirmDeletions={options[ExplorerOptions.ConfirmDeletions]}
+                           allowShowInBrowseTab={allowShowInBrowseTab} history={history}/>;
 
         return (
             <div className="file-explorer">
@@ -353,7 +354,8 @@ const getFileHashes = createSelector([getFileMap, getData], (fileMap, data) => {
 const getSlimFiles = createSelector([getFileMap, getFileHashes], (fileMap, fileHashes) => {
     let slimFiles = null;
     if (fileHashes) {
-        const files = fileHashes.map(h => fileMap[h]);
+        // TODO: Perhaps not just hide empty files?
+        const files = fileHashes.map(h => fileMap[h]).filter(f => !!f);
         slimFiles = files.map(f => ({
             hash: f.hash,
             base: f.base,

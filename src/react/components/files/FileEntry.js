@@ -37,7 +37,6 @@ class FileEntry extends React.PureComponent {
         hash: PropTypes.string.isRequired,
         summary: EnvSummaryPropType.isRequired,
 
-
         // Props provided by redux.connect
         file: FilePropType.isRequired,
 
@@ -71,10 +70,9 @@ class FileEntry extends React.PureComponent {
             icon: file.isDir ? FolderIconData : getIconData(file),
         };
 
+        this.handlers = {};
         if (props.contextMenuId) {
             this.handlers = prepareContextMenuHandlers({id: props.contextMenuId, data: props.hash});
-        } else {
-            this.handlers = {};
         }
 
         this.clickCount = 0;
@@ -91,8 +89,8 @@ class FileEntry extends React.PureComponent {
     }
 
     componentDidMount() {
-        const file = this.props.file;
-        if (file.thumb === ThumbnailState.Ready) this.loadThumbnail();
+        const {file} = this.props;
+        if (file.thumbState === ThumbnailState.Ready) this.loadThumbnail();
     }
 
     componentWillUnmount() {
@@ -103,21 +101,21 @@ class FileEntry extends React.PureComponent {
     componentDidUpdate(prevProps) {
         const oldFile = prevProps.file;
         const newFile = this.props.file;
-        if (oldFile.thumb !== newFile.thumb
-            && newFile.thumb === ThumbnailState.Ready) {
+        if (oldFile.thumbState !== newFile.thumbState
+            && newFile.thumbState === ThumbnailState.Ready) {
             this.loadThumbnail();
         }
     }
 
     loadThumbnail = () => {
         const {file} = this.props;
-        const url = `${window.serverHost}/static/env/${this.summary.slug}/thumbs/${file.hash}.jpg`;
+        const url = `${window.serverHost}/static/env/${this.summary.slug}/thumbs/${file.thumbName}`;
         this.setState({thumbBgImage: `url('${url}')`});
     };
 
     handleVisibilityChange = isVisible => {
-        const file = this.props.file;
-        if (file.thumb === ThumbnailState.Impossible || file.thumb === ThumbnailState.Ready) return;
+        const {file} = this.props;
+        if (file.thumbState === ThumbnailState.Impossible || file.thumbState === ThumbnailState.Ready) return;
 
         if (!isVisible || this.wasVisibleOnce) return;
         this.wasVisibleOnce = true;
@@ -129,15 +127,15 @@ class FileEntry extends React.PureComponent {
     };
 
     handleClick = event => {
-        const props = this.props;
-        if (event.ctrlKey || event.shiftKey) return this.triggerSingleClick(event, props.displayIndex);
+        const {displayIndex, singleAndDoubleClickExclusive} = this.props;
+        if (event.ctrlKey || event.shiftKey) return this.triggerSingleClick(event, displayIndex);
 
         this.clickCount++;
         if (this.clickCount === 1) {
-            if (props.singleAndDoubleClickExclusive) {
-                this.singleClickTimer = setTimeout(() => this.triggerSingleClick(event, props.displayIndex), 300);
+            if (singleAndDoubleClickExclusive) {
+                this.singleClickTimer = setTimeout(() => this.triggerSingleClick(event, displayIndex), 300);
             } else {
-                this.triggerSingleClick(event, props.displayIndex);
+                this.triggerSingleClick(event, displayIndex);
                 this.clickCount = 1;
                 setTimeout(() => this.clickCount = 0, 300);
             }
@@ -156,8 +154,7 @@ class FileEntry extends React.PureComponent {
     }
 
     render() {
-        const {selected, view, showExtension, collapseLongNames, displayIndex} = this.props;
-        const file = this.props.file;
+        const {file, selected, view, showExtension, collapseLongNames, displayIndex} = this.props;
 
         // Prepare file name
         let name = file.name;

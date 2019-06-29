@@ -203,12 +203,13 @@ export const environmentReducer = createReducer({}, {
         return {...state, fileMap};
     },
     [ReduxActions.UpdateThumbStates]: (state, action) => {
-        const {hashes, thumb} = action.data;
+        const {thumbs, thumbState} = action.data;
         const fileMap = {...state.fileMap};
 
-        for (const hash of hashes) {
+        for (const thumb of thumbs) {
+            const {hash, thumbName} = thumb;
             const file = fileMap[hash];
-            if (file) fileMap[hash] = {...file, thumb};
+            if (file) fileMap[hash] = {...file, thumbName, thumbState};
         }
         return {...state, fileMap};
     },
