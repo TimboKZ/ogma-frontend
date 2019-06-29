@@ -74,14 +74,14 @@ export default class DataManager {
     dispatch(...args) {
         const type = args[0];
         let envId;
-        let data;
+        let payload;
         if (args.length === 2) {
-            data = args[1];
+            payload = args[1];
         } else {
             envId = args[1];
-            data = args[2];
+            payload = args[2];
         }
-        this.store.dispatch({type, envId, data});
+        this.store.dispatch({type, envId, payload});
     }
 
     _syncBaseState() {

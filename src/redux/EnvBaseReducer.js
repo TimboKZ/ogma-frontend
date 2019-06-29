@@ -18,18 +18,18 @@ import {ReduxActions, DefaultEnvRoutePath} from '../util/typedef';
 
 const subRouteReducer = (state = DefaultEnvRoutePath, action) => {
     if (action.type !== ReduxActions.UpdateEnvSubRoute) return state;
-    return action.data;
+    return action.payload;
 };
 
 const summaryReducer = (state = {}, action) => {
     if (action.type !== ReduxActions.UpdateSummary) return state;
-    return action.data;
+    return action.payload;
 };
 
 export const envMiscReducer = createReducer({}, {
     [ReduxActions.OverwriteMultipleFileDetails]: (state, action) => {
         // Update entity info based on file changes
-        const files = action.data;
+        const files = action.payload;
         let {fileMap, entityMap} = state;
         entityMap = {...entityMap};
         for (const file of files) {
@@ -50,7 +50,7 @@ export const envMiscReducer = createReducer({}, {
     },
     [ReduxActions.RemoveMultipleFiles]: (state, action) => {
         // Delete entity when file is deleted
-        const deletedHashes = action.data;
+        const deletedHashes = action.payload;
         let {fileMap, entityMap} = state;
         entityMap = {...entityMap};
         for (const fileHash of deletedHashes) {
@@ -74,18 +74,3 @@ const envNewReducer = combineReducers({
 });
 
 export const envBaseReducer = reduceReducers({}, envNewReducer, envMiscReducer);
-// export const envBaseReducer = (state = {}, action) => {
-//     state = envBaseReducer(state, action);
-//     return {
-//         ...state,
-//         ...envNewReducer({
-//             subRoute: state.subRoute,
-//             tagIds: state.tagIds,
-//             tagMap: state.tagMap,
-//             entityMap: state.entityMap,
-//             fileMap: state.fileMap,
-//             tabBrowse: state.tabBrowse,
-//             tabSearch: state.tabSearch,
-//         }, action),
-//     };
-// };

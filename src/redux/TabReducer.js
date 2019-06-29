@@ -10,7 +10,7 @@ import {DefaultTagSearchCondition, ReduxActions} from '../util/typedef';
 
 export const tabBrowseReducer = createReducer({path: '/'}, {
     [ReduxActions.TabBrowseChangePath]: (state, action) => {
-        state.path = action.data;
+        state.path = action.payload;
     },
 });
 
@@ -20,17 +20,17 @@ export const tabSearchReducer = createReducer({
     tagSearchCondition: DefaultTagSearchCondition,
 }, {
     [ReduxActions.TabSearchChangeTagSelection]: (state, action) => {
-        const {tagId, selected} = action.data;
+        const {tagId, selected} = action.payload;
         const selectedTagsMap = {...state.selectedTagsMap};
         if (selected) selectedTagsMap[tagId] = true;
         else delete selectedTagsMap[tagId];
         return {...state, selectedTagsMap};
     },
     [ReduxActions.TabSearchChangeTagSearchCondition]: (state, action) => {
-        state.tagSearchCondition = action.data;
+        state.tagSearchCondition = action.payload;
     },
     [ReduxActions.TabSearchChangeTagFilter]: (state, action) => {
-        state.tagFilter = action.data;
+        state.tagFilter = action.payload;
     },
 });
 

@@ -12,7 +12,7 @@ import {ReduxActions} from '../util/typedef';
 
 export const entityMapReducer = createReducer({}, {
     [ReduxActions.TagFiles]: (state, action) => {
-        const {entities: slimEntities, tagIds} = action.data;
+        const {entities: slimEntities, tagIds} = action.payload;
         const entityMap = {...state};
         for (let i = 0; i < slimEntities.length; ++i) {
             const slimEntity = slimEntities[i];
@@ -27,7 +27,7 @@ export const entityMapReducer = createReducer({}, {
         return entityMap;
     },
     [ReduxActions.UntagFiles]: (state, action) => {
-        const {entityIds, tagIds} = action.data;
+        const {entityIds, tagIds} = action.payload;
         const entityMap = {...state};
         for (let i = 0; i < entityIds.length; ++i) {
             const entityId = entityIds[i];
@@ -42,7 +42,7 @@ export const entityMapReducer = createReducer({}, {
     },
 
     [ReduxActions.SetAllEntities]: (state, action) => {
-        const entities = action.data;
+        const entities = action.payload;
         // Uncomment if we'll need entityIDs in the future
         const entityMap = {};
         for (let i = 0; i < entities.length; ++i) {
@@ -52,7 +52,7 @@ export const entityMapReducer = createReducer({}, {
         return entityMap;
     },
     [ReduxActions.UpdateEntities]: (state, action) => {
-        const partialSlimEntities = action.data;
+        const partialSlimEntities = action.payload;
         const entityMap = {...state};
         for (let i = 0; i < partialSlimEntities.length; ++i) {
             const entity = partialSlimEntities[i];

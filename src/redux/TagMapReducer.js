@@ -10,7 +10,7 @@ import {DefaultTagSearchCondition, ReduxActions} from '../util/typedef';
 
 export const tagMapReducer = createReducer({}, {
     [ReduxActions.SetAllTags]: (state, action) => {
-        const tags = action.data;
+        const tags = action.payload;
         const tagMap = {};
         for (let i = 0; i < tags.length; ++i) {
             const tag = tags[i];
@@ -19,7 +19,7 @@ export const tagMapReducer = createReducer({}, {
         return tagMap;
     },
     [ReduxActions.AddNewTags]: (state, action) => {
-        const tags = action.data;
+        const tags = action.payload;
         const tagMap = {...state};
         for (let i = 0; i < tags.length; ++i) {
             const tag = tags[i];

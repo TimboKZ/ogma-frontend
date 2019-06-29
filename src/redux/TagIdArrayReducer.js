@@ -11,13 +11,13 @@ import {ReduxActions} from '../util/typedef';
 
 export const tagIdArrayReducer = createReducer([], {
     [ReduxActions.SetAllTags]: (state, action) => {
-        const tags = action.data;
+        const tags = action.payload;
         const tagIds = new Array(tags.length);
         for (let i = 0; i < tags.length; ++i) tagIds[i] = tags[i].id;
         return tagIds;
     },
     [ReduxActions.AddNewTags]: (state, action) => {
-        const tags = action.data;
+        const tags = action.payload;
         const newTagIds = new Array(tags.length);
         for (let i = 0; i < tags.length; ++i) {
             const tag = tags[i];

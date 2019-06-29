@@ -12,7 +12,7 @@ import {ReduxActions} from '../util/typedef';
 
 export const fileMapReducer = createReducer({}, {
     [ReduxActions.TagFiles]: (state, action) => {
-        const {entities: slimEntities} = action.data;
+        const {entities: slimEntities} = action.payload;
         const fileMap = {...state};
         for (let i = 0; i < slimEntities.length; ++i) {
             const slimEntity = slimEntities[i];
@@ -27,7 +27,7 @@ export const fileMapReducer = createReducer({}, {
     },
 
     [ReduxActions.SetDirectoryContent]: (state, action) => {
-        const {directory: dir, fileHashes} = action.data;
+        const {directory: dir, fileHashes} = action.payload;
         const fileMap = {...state};
         const oldDir = fileMap[dir.hash];
         fileMap[dir.hash] = {
@@ -37,7 +37,7 @@ export const fileMapReducer = createReducer({}, {
         return fileMap;
     },
     [ReduxActions.OverwriteMultipleFileDetails]: (state, action) => {
-        const files = action.data;
+        const files = action.payload;
         const fileMap = {...state};
         const dirHashMap = {};
         for (const file of files) {
@@ -77,7 +77,7 @@ export const fileMapReducer = createReducer({}, {
         return fileMap;
     },
     [ReduxActions.RemoveMultipleFiles]: (state, action) => {
-        const deletedHashes = action.data;
+        const deletedHashes = action.payload;
         const fileMap = {...state};
 
         const dirHashMap = {};
@@ -110,7 +110,7 @@ export const fileMapReducer = createReducer({}, {
         return fileMap;
     },
     [ReduxActions.UpdateThumbStates]: (state, action) => {
-        const {thumbs, thumbState} = action.data;
+        const {thumbs, thumbState} = action.payload;
         const fileMap = {...state};
 
         for (const thumb of thumbs) {

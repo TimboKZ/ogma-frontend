@@ -26,20 +26,20 @@ const initialGlobalState = {
  * @returns {object}
  */
 const ogmaAppReducer = (state = initialGlobalState, action) => {
-    const {type, data} = action;
-    if (!action.envId && data && data.id) action.envId = data.id;
+    const {type, payload} = action;
+    if (!action.envId && payload && payload.id) action.envId = payload.id;
 
     if (type === ReduxActions.SetClientDetails) {
         return {
             ...state,
             client: {
                 ...state.client,
-                ...data,
+                ...payload,
             },
         };
     } else if (type === ReduxActions.SetConnectionList) {
         const connectionMap = {};
-        for (const conn of data) {
+        for (const conn of payload) {
             connectionMap[conn.id] = conn;
         }
         return {
@@ -48,20 +48,20 @@ const ogmaAppReducer = (state = initialGlobalState, action) => {
         };
     } else if (type === ReduxActions.AddConnection) {
         const connectionMap = {...state.connectionMap};
-        connectionMap[data.id] = data;
+        connectionMap[payload.id] = payload;
         return {
             ...state,
             connectionMap,
         };
     } else if (type === ReduxActions.RemoveConnection) {
         const connectionMap = {...state.connectionMap};
-        delete connectionMap[data];
+        delete connectionMap[payload];
         return {
             ...state,
             connectionMap,
         };
     } else if (type === ReduxActions.UpdateSummaries) {
-        const newSummaries = data;
+        const newSummaries = payload;
         const newEnvIds = _.map(newSummaries, s => s.id);
         const newEnvMap = {};
         for (let i = 0; i < newSummaries.length; ++i) {
