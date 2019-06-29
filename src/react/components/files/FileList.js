@@ -4,18 +4,24 @@
  * @license GPL-3.0
  */
 
+import _ from 'lodash';
 import React from 'react';
 import c from 'classnames';
 import * as PropTypes from 'prop-types';
+import {FixedSizeGrid as Grid, VariableSizeList as List} from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 
 import Icon from '../Icon';
 import FileEntry from './FileEntry';
-import {EnvSummaryPropType, FileViewToClass} from '../../../util/typedef';
+import {EnvSummaryPropType, FileView, FileViewToClass} from '../../../util/typedef';
 
-// const FileViewConfigs = {
-//     [FileView.MediumThumb]: {columnWidth: 256, rowHeight: 156},
-//     [FileView.LargeThumb]: {columnWidth: 406, rowHeight: 306},
-// };
+const FileViewConfigs = {
+    [FileView.MediumThumb]: {columnWidth: 250, rowHeight: 150},
+    [FileView.LargeThumb]: {columnWidth: 400, rowHeight: 300},
+};
+
+const ListItemSize = 31;
+const GutterSize = 6;
 
 class FileList extends React.Component {
 
@@ -36,13 +42,71 @@ class FileList extends React.Component {
     constructor(props) {
         super(props);
         this.summary = props.summary;
+        this.listRef = null;
+        this.debouncedRequestListUpdate = _.debounce(this.requestListUpdate, 10);
     }
 
-    renderFiles() {
+    componentDidMount() {
+        window.addEventListener('resize', this.requestListUpdate);
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.requestListUpdate);
+    }
+
+    requestListUpdate = () => {
+        if (this.listRef && this.listRef.current) this.listRef.current.resetAfterIndex(0);
+    };
+
+    getItemSize = index => {
+        const elem = this.elemMap[index];
+        if (elem) return Math.max(elem.clientHeight, ListItemSize);
+        return ListItemSize;
+    };
+
+    renderFileEntry = entryData => {
         const {
-            fileHashes, loadingCount, showExtensions, collapseLongNames, selection, contextMenuId,
+            fileHashes, showExtensions, collapseLongNames, selection, contextMenuId,
             handleSingleClick, handleDoubleClick, view,
         } = this.props;
+        const {index: listIndex, columnIndex, rowIndex, style, data} = entryData;
+
+        let index = listIndex;
+        let entryStyle = style;
+        if (!listIndex && listIndex !== 0) {
+            const {columnCount} = data;
+            index = rowIndex * columnCount + columnIndex;
+            entryStyle = {
+                ...entryStyle,
+                left: style.left + GutterSize,
+                top: style.top + GutterSize,
+                width: style.width - GutterSize,
+                height: style.height - GutterSize,
+            };
+        }
+        // console.log('File entry I:', index);
+        if (index >= fileHashes.length) return null;
+
+        const assignElem = elem => {
+            if (this.elemMap[index]) return;
+            this.elemMap[index] = elem;
+            this.debouncedRequestListUpdate();
+        };
+
+        const hash = fileHashes[index];
+        return <div key={hash} style={entryStyle}>
+            <div ref={assignElem}>
+                <FileEntry hash={hash} summary={this.summary} displayIndex={index} view={view}
+                           showExtension={showExtensions} collapseLongNames={collapseLongNames}
+                           selected={!!selection[hash]} contextMenuId={contextMenuId}
+                           onSingleClick={handleSingleClick} onDoubleClick={handleDoubleClick}/>
+            </div>
+        </div>;
+    };
+
+    renderFiles() {
+        this.elemMap = {};
+        const {fileHashes, loadingCount, view} = this.props;
 
         const empty = fileHashes && fileHashes.length === 0;
         const loading = !fileHashes || (empty && loadingCount > 0);
@@ -50,15 +114,58 @@ class FileList extends React.Component {
         if (loading) return <div className="file-list-text"><Icon name="cog" animation={true}/> Loading...</div>;
         else if (empty) return <div className="file-list-text">No files to show.</div>;
 
-        const comps = new Array(fileHashes.length);
-        for (let i = 0; i < comps.length; ++i) {
-            const hash = fileHashes[i];
-            comps[i] = <FileEntry key={hash} hash={hash} summary={this.summary} displayIndex={i} view={view}
-                                  showExtension={showExtensions} collapseLongNames={collapseLongNames}
-                                  selected={!!selection[hash]} contextMenuId={contextMenuId}
-                                  onSingleClick={handleSingleClick} onDoubleClick={handleDoubleClick}/>;
+
+        if (view === FileView.List) {
+            this.listRef = React.createRef();
+            return (
+                <AutoSizer>
+                    {({height, width}) => {
+                        const rowCount = fileHashes.length;
+                        return (
+                            <List
+                                ref={this.listRef}
+                                width={width}
+                                height={height}
+                                itemCount={rowCount}
+                                itemSize={this.getItemSize}
+                                estimatedItemSize={ListItemSize}
+                                overscanCount={10}>
+                                {this.renderFileEntry}
+                            </List>
+                        );
+                    }}
+                </AutoSizer>
+            );
         }
-        return comps;
+
+        this.listRef = null;
+        const sizeData = FileViewConfigs[view];
+        return (
+            <AutoSizer>
+                {({height, width}) => {
+                    const columnWidth = sizeData.columnWidth + GutterSize;
+                    const rowHeight = sizeData.rowHeight + GutterSize;
+
+                    const columnCount = Math.floor((width - 20) / columnWidth);
+                    const rowCount = Math.ceil(fileHashes.length / columnCount);
+
+                    return (
+                        <Grid
+                            width={width}
+                            height={height}
+                            columnWidth={columnWidth}
+                            rowHeight={rowHeight}
+                            columnCount={columnCount}
+                            rowCount={rowCount}
+                            overscanRowCount={3}
+                            itemData={{columnCount, rowCount}}>
+                            {this.renderFileEntry}
+                        </Grid>
+                    );
+                }}
+            </AutoSizer>
+        );
+
     }
 
     render() {

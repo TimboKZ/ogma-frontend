@@ -40,12 +40,11 @@
 
         .file-list {
             will-change: transform;
-            overflow-y: scroll;
-            overflow-x: hidden;
+            overflow: hidden;
             flex: 1 1 auto;
             height: 0;
             &.view-thumb {
-                padding: 3px;
+                //padding: 3px;
             }
             &-text {
                 text-align: center;

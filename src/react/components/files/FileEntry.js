@@ -9,6 +9,7 @@ import c from 'classnames';
 import {When} from 'react-if';
 import {connect} from 'react-redux';
 import * as PropTypes from 'prop-types';
+import fastMount from 'react-fast-mount';
 import VisibilitySensor from 'react-visibility-sensor';
 import {prepareContextMenuHandlers} from 'react-context-menu-wrapper';
 
@@ -231,4 +232,4 @@ export default connect((state, ownProps) => {
     const fileMap = state.envMap[summary.id].fileMap;
     const file = fileMap[hash];
     return {file};
-})(FileEntry);
+})(fastMount(FileEntry));
