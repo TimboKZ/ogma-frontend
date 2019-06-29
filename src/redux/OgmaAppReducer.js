@@ -6,7 +6,7 @@
 
 import _ from 'lodash';
 
-import {environmentReducer} from './EnvironmentReducer';
+import {envBaseReducer} from './EnvBaseReducer';
 import {DefaultEnvRoutePath, DefaultTagSearchCondition, ReduxActions} from '../util/typedef';
 
 const initialGlobalState = {
@@ -68,7 +68,6 @@ const ogmaAppReducer = (state = initialGlobalState, action) => {
             const summary = newSummaries[i];
             const oldEnv = state.envMap[summary.id];
             const env = oldEnv ? {...oldEnv} : {
-                id: summary.id,
                 subRoute: DefaultEnvRoutePath,
                 tagIds: [],
                 tagMap: {},
@@ -87,15 +86,11 @@ const ogmaAppReducer = (state = initialGlobalState, action) => {
             envMap: newEnvMap,
         };
     } else if (action.envId) {
-        const envId = action.envId;
-        const newEnvMap = {
-            ...state.envMap,
-            [envId]: environmentReducer(state.envMap[envId], action),
-        };
-        return {
-            ...state,
-            envMap: newEnvMap,
-        };
+        // Environment specific action
+        const {envId} = action;
+        const envMap = {...state.envMap};
+        envMap[envId] = envBaseReducer(state.envMap[envId], action);
+        return {...state, envMap};
     } else if (window.isDevelopment && type !== '@@INIT') {
         console.warn(`[Redux] Non-global action called without 'envId': ${type}`);
     }
