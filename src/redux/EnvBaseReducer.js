@@ -4,7 +4,6 @@
  * @license GPL-3.0
  */
 
-import _ from 'lodash';
 import {combineReducers} from 'redux';
 import reduceReducers from 'reduce-reducers';
 import {createReducer} from 'redux-starter-kit';
@@ -27,27 +26,6 @@ const summaryReducer = (state = {}, action) => {
 };
 
 export const envMiscReducer = createReducer({}, {
-    [ReduxActions.OverwriteMultipleFileDetails]: (state, action) => {
-        // Update entity info based on file changes
-        const files = action.payload;
-        let {fileMap, entityMap} = state;
-        entityMap = {...entityMap};
-        for (const file of files) {
-            const oldFile = fileMap[file.hash];
-            if (!oldFile || file.entityId !== oldFile.entityId) {
-                if (oldFile) delete entityMap[oldFile.entityId];
-                if (file.entityId) {
-                    entityMap[file.entityId] = {
-                        ...entityMap[file.entityId],
-                        id: file.entityId,
-                        hash: file.hash,
-                        tagIds: file.tagIds,
-                    };
-                }
-            }
-        }
-        return {...state, entityMap};
-    },
     [ReduxActions.RemoveMultipleFiles]: (state, action) => {
         // Delete entity when file is deleted
         const deletedHashes = action.payload;

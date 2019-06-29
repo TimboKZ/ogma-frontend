@@ -13,7 +13,7 @@ import * as PropTypes from 'prop-types';
 
 import Icon from '../components/Icon';
 import Breadcrumbs from '../components/Breadcrumbs';
-import NewFileExplorer from '../components/files/FileExplorer';
+import FileExplorer from '../components/files/FileExplorer';
 import {EnvironmentContext, MenuIds, ExplorerOptionsDefaults, ReduxActions} from '../../util/typedef';
 
 class TabBrowse extends React.Component {
@@ -33,7 +33,12 @@ class TabBrowse extends React.Component {
         super(props);
         this.summary = context;
 
+        const uriHash = decodeURI(props.location.hash.slice(1));
+        const currPath = uriHash ? uriHash : props.path;
+
         this.state = {
+            path: currPath,
+            levelUpDisabled: currPath === '/',
             selection: {},
             contextFileHash: null,
             breadcrumbs: this.pathToBreadcrumbs(props.path),
@@ -42,37 +47,31 @@ class TabBrowse extends React.Component {
         };
     }
 
-    static getDerivedStateFromProps(props, state) {
-        if (props.path !== state.path) {
-            return {
-                path: props.path,
-                levelUpDisabled: props.path === '/',
-            };
-        }
-        return null;
+    componentDidMount() {
+        this.changePath(this.state.path);
     }
 
     // noinspection JSCheckFunctionSignatures
     componentDidUpdate(prevProps) {
-        if (prevProps.path !== this.props.path) {
+        const {path: currPath} = this.props;
+        if (prevProps.path !== currPath) {
             const normPath = path.normalize(this.props.path);
-            this.setState({breadcrumbs: this.pathToBreadcrumbs(normPath)});
+            this.setState({
+                path: currPath,
+                levelUpDisabled: currPath === '/',
+                breadcrumbs: this.pathToBreadcrumbs(normPath),
+            });
         }
     }
 
-    componentDidMount() {
-        this.changePath(this.props.path, true);
-    }
+    changePath = newPath => {
+        const {history, tabPath, path: prevPath} = this.props;
 
-    changePath = (newPath, tryUrlHash = false) => {
-        const {location, history, tabPath} = this.props;
-
-        if (tryUrlHash) {
-            const uriHash = decodeURI(location.hash.slice(1));
-            if (uriHash) newPath = uriHash;
-        }
         const normPath = path.normalize(newPath);
-        window.dataManager.dispatch(ReduxActions.TabBrowseChangePath, this.summary.id, normPath);
+        if (normPath !== prevPath) {
+            window.dataManager.dispatch(ReduxActions.TabBrowseChangePath, this.summary.id, normPath);
+        }
+
         const hash = `#${normPath}`;
         history.push(hash);
         window.dataManager.setEnvRoutePath({id: this.summary.id, path: `${tabPath}${hash}`});
@@ -115,9 +114,8 @@ class TabBrowse extends React.Component {
                 </div>
             </div>
 
-            <NewFileExplorer summary={this.summary} path={state.path} changePath={this.changePath}
-                             contextMenuId={MenuIds.TabBrowse}/>
-
+            <FileExplorer summary={this.summary} path={state.path} changePath={this.changePath}
+                          contextMenuId={MenuIds.TabBrowse}/>
         </React.Fragment>;
     }
 

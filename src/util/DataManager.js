@@ -57,7 +57,7 @@ export default class DataManager {
         };
         for (const eventName in BackendEvents) {
             if (!listenerMap[BackendEvents[eventName]]) {
-                console.warn(`Backend event "${eventName}" does not have a listener `)
+                console.warn(`Backend event "${eventName}" does not have a listener `);
             }
         }
         this.emitter.on('*', function (...args) {
@@ -209,7 +209,9 @@ export default class DataManager {
                     }
                 }
 
-                this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, badHashQueue.toArray());
+                if (badHashQueue.length > 0) {
+                    this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, badHashQueue.toArray());
+                }
                 this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, newFileQueue.toArray());
                 return null;
             });

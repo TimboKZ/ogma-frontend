@@ -6,7 +6,7 @@
 
 import {createReducer} from 'redux-starter-kit';
 
-import {DefaultTagSearchCondition, ReduxActions} from '../util/typedef';
+import {ReduxActions} from '../util/typedef';
 
 export const tagMapReducer = createReducer({}, {
     [ReduxActions.SetAllTags]: (state, action) => {

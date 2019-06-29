@@ -54,8 +54,10 @@ class Environment extends React.Component {
 
     handleRouteChange = routePath => {
         // Remember the current subroute
-        const summary = this.props.summary;
-        window.dataManager.setEnvRoutePath({id: summary.id, path: routePath});
+        const {summary} = this.props;
+        if (!routePath.startsWith(EnvRoutePaths.browse)) {
+            window.dataManager.setEnvRoutePath({id: summary.id, path: routePath});
+        }
     };
 
     renderRoutes() {

@@ -7,7 +7,6 @@
 import _ from 'lodash';
 import {createReducer} from 'redux-starter-kit';
 
-import Util from '../util/Util';
 import {ReduxActions} from '../util/typedef';
 
 export const entityMapReducer = createReducer({}, {
@@ -60,6 +59,25 @@ export const entityMapReducer = createReducer({}, {
                 ...entityMap[entity.id],
                 ...entity,
             };
+        }
+        return entityMap;
+    },
+    
+    [ReduxActions.OverwriteMultipleFileDetails]: (state, action) => {
+        // Update entity info based on file changes
+        const files = action.payload;
+        const entityMap = {...state};
+        for (const file of files) {
+            if (file.entityId) {
+                if (file.entityId) {
+                    entityMap[file.entityId] = {
+                        ...entityMap[file.entityId],
+                        id: file.entityId,
+                        hash: file.hash,
+                        tagIds: file.tagIds,
+                    };
+                }
+            }
         }
         return entityMap;
     },
