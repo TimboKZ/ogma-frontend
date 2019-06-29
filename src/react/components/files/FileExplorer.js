@@ -8,11 +8,13 @@ import _ from 'lodash';
 import path from 'path';
 import React from 'react';
 import Fuse from 'fuse.js';
+import Swal from 'sweetalert2';
 import Promise from 'bluebird';
 import equal from 'fast-deep-equal';
 import {connect} from 'react-redux';
 import * as PropTypes from 'prop-types';
 import {createSelector} from 'reselect';
+import validFilename from 'valid-filename';
 import {NotificationManager} from 'react-notifications';
 import {ContextMenuWrapper} from 'react-context-menu-wrapper';
 
@@ -21,6 +23,7 @@ import Util from '../../../util/Util';
 import FilePreview from './FilePreview';
 import FileStatusBar from './FileStatusBar';
 import FileEntryMenu from './FileEntryMenu';
+import ModalUtil from '../../../util/ModalUtil';
 import {createDeepEqualSelector} from '../../../redux/Selector';
 import {EnvSummaryPropType, ExplorerOptions, ExplorerOptionsDefaults, FileView, KeyCode} from '../../../util/typedef';
 
@@ -44,16 +47,17 @@ class FileExplorer extends React.Component {
         // Props passed by parent
         history: PropTypes.object,
         changePath: PropTypes.func,
-        createFolder: PropTypes.func,
         showPreview: PropTypes.bool,
         loadingCount: PropTypes.number,
         contextMenuId: PropTypes.string,
+        allowFolderCreation: PropTypes.bool,
         allowShowInBrowseTab: PropTypes.bool,
     };
 
     static defaultProps = {
         showPreview: false,
         loadingCount: 0,
+        allowFolderCreation: false,
         allowShowInBrowseTab: false,
     };
 
@@ -303,8 +307,35 @@ class FileExplorer extends React.Component {
         });
     };
 
+    handleCreateFolder = () => {
+        const {path: currPath} = this.props;
+        if (!currPath) return;
+
+        // noinspection JSUnusedGlobalSymbols
+        return ModalUtil.fire({
+            title: 'Choose folder name:',
+            input: 'text',
+            inputValue: '',
+            inputAttributes: {autocapitalize: 'off'},
+            inputValidator: value => {
+                value = value.trim();
+                if (!value) return 'The name cannot be blank.';
+                if (!validFilename(value)) return 'The filename you specified is invalid.';
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Create folder',
+            showLoaderOnConfirm: true,
+            preConfirm: newFolderName => {
+                const newFolderPath = path.join(currPath, newFolderName.trim());
+                return window.ipcModule.createFolder({id: this.summary.id, path: newFolderPath})
+                    .catch(error => Swal.showValidationMessage(`Folder creation failed: ${error}`));
+            },
+            allowOutsideClick: () => !Swal.isLoading(),
+        });
+    };
+
     render() {
-        const {changePath, loadingCount, contextMenuId, allowShowInBrowseTab, history} = this.props;
+        const {changePath, loadingCount, contextMenuId, allowShowInBrowseTab, history, allowFolderCreation} = this.props;
         const {filter, slimFiles, fileHashes, selection, options, showPreview} = this.state;
 
         const fileCount = fileHashes ? fileHashes.length : -1;
@@ -321,7 +352,8 @@ class FileExplorer extends React.Component {
                 <FileStatusBar filter={filter} onFilerChange={this.handleFilterChange}
                                fileCount={fileCount} hiddenCount={hiddenCount}
                                selectionSize={selectionSize} loadingCount={loadingCount}
-                               options={options} onOptionChange={this.onOptionChange}/>
+                               options={options} onOptionChange={this.onOptionChange}
+                               createFolder={allowFolderCreation ? this.handleCreateFolder : null}/>
 
                 <FileList summary={this.summary} fileHashes={fileHashes}
                           selection={selection} contextMenuId={contextMenuId}

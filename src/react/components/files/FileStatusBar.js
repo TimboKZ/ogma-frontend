@@ -106,7 +106,7 @@ export default class FileStatusBar extends React.Component {
 
     render() {
         const {
-            fileCount, hiddenCount, selectionSize, loadingCount, options, onOptionChange,
+            fileCount, hiddenCount, selectionSize, loadingCount, options, onOptionChange, createFolder,
         } = this.props;
         const {filter} = this.state;
 
@@ -154,6 +154,8 @@ export default class FileStatusBar extends React.Component {
                 </div>
 
                 <div className="level-right">
+                    {!!createFolder && this.renderButton('folder-plus', false,
+                        createFolder, 'Create folder')}
                     {this.renderButtons('order', SortOrderOptions, options[Options.SortOrder],
                         prepHandler(Options.SortOrder))}
                     {this.renderButtons('view', FileViewOptions, options[Options.FileView],

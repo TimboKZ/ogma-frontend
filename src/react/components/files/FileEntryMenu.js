@@ -14,6 +14,7 @@ import equal from 'fast-deep-equal';
 import {connect} from 'react-redux';
 import * as PropTypes from 'prop-types';
 import {createSelector} from 'reselect';
+import validFilename from 'valid-filename';
 import ReactTags from 'react-tag-autocomplete';
 import {hideAllContextMenus} from 'react-context-menu-wrapper';
 
@@ -45,7 +46,6 @@ class FileEntryMenu extends React.Component {
         id: PropTypes.string.isRequired,
         history: PropTypes.object,
         changePath: PropTypes.func,
-        createFolder: PropTypes.func,
         allowShowInBrowseTab: PropTypes.bool,
         confirmDeletions: PropTypes.bool.isRequired,
     };
@@ -265,26 +265,33 @@ class FileEntryMenu extends React.Component {
 
         if (!isMult) {
             const file = firstFile;
+            const objName = file.isDir ? 'folder' : 'file';
+            const renameString = `Rename ${objName}`;
             const renameClick = () => {
-                // noinspection JSUnusedGlobalSymbols
+                // noinspection JSUnusedGlobalSymbols,JSCheckFunctionSignatures
                 return ModalUtil.fire({
-                    title: 'Rename file:',
+                    title: 'Choose a new name:',
                     input: 'text',
                     inputValue: file.base,
                     inputAttributes: {autocapitalize: 'off'},
+                    inputValidator: value => {
+                        value = value.trim();
+                        if (!value) return 'The name cannot be blank.';
+                        if (!validFilename(value)) return 'The filename you specified is invalid.';
+                    },
                     showCancelButton: true,
-                    confirmButtonText: 'Rename',
+                    confirmButtonText: renameString,
                     showLoaderOnConfirm: true,
                     preConfirm: (newFileName) => {
                         const oldPath = file.nixPath;
-                        const newPath = path.join(path.dirname(file.nixPath), newFileName);
+                        const newPath = path.join(path.dirname(file.nixPath), newFileName.trim());
                         return window.ipcModule.renameFile({id: this.summary.id, oldPath, newPath})
                             .catch(error => Swal.showValidationMessage(`Renaming failed: ${error}`));
                     },
                     allowOutsideClick: () => !Swal.isLoading(),
                 });
             };
-            buttons[4] = {icon: 'i-cursor', name: 'Rename', onClick: this.getHandler(renameClick, true)};
+            buttons[4] = {icon: 'i-cursor', name: renameString, onClick: this.getHandler(renameClick, true)};
         }
 
         const removeFunc = () => {

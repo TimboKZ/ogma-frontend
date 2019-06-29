@@ -115,7 +115,7 @@ class TabBrowse extends React.Component {
             </div>
 
             <FileExplorer summary={this.summary} path={state.path} changePath={this.changePath}
-                          contextMenuId={MenuIds.TabBrowse}/>
+                          contextMenuId={MenuIds.TabBrowse} allowFolderCreation={true}/>
         </React.Fragment>;
     }
 
