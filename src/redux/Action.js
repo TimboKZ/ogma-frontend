@@ -204,11 +204,11 @@ export class EnvDispatcher {
 
     /**
      * @param {string} envId
-     * @param {string} dirHash
+     * @param {FileDetails} dirFile
      * @param {string[]} fileHashes
      */
-    static setDirectoryContent(envId, dirHash, fileHashes) {
-        dispatchAction(ActionTypes.SetDirectoryContent, envId, {dirHash, fileHashes});
+    static setDirectoryContent(envId, dirFile, fileHashes) {
+        dispatchAction(ActionTypes.SetDirectoryContent, envId, {dirFile, fileHashes});
     }
 
 

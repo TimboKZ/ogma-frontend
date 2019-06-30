@@ -10,7 +10,6 @@ import {When} from 'react-if';
 import {connect} from 'react-redux';
 import * as PropTypes from 'prop-types';
 import fastMount from 'react-fast-mount';
-import VisibilitySensor from 'react-visibility-sensor';
 import {prepareContextMenuHandlers} from 'react-context-menu-wrapper';
 
 import Icon from '../Icon';
@@ -77,7 +76,6 @@ class FileEntry extends React.PureComponent {
         }
 
         this.clickCount = 0;
-        this.wasVisibleOnce = false;
         this.imageLoadPromise = null;
         this.triggerSingleClick = (event, displayIndex) => {
             this.clickCount = 0;
@@ -91,7 +89,15 @@ class FileEntry extends React.PureComponent {
 
     componentDidMount() {
         const {file} = this.props;
-        if (file.thumbState === ThumbnailState.Ready) this.loadThumbnail();
+        const {thumbState} = file;
+        if (thumbState === ThumbnailState.Impossible) return;
+        if (thumbState === ThumbnailState.Ready) this.loadThumbnail();
+        else if (thumbState === ThumbnailState.Possible) {
+            const summary = this.summary;
+            Promise.resolve()
+                .then(() => window.dataManager.requestFileThumbnail({id: summary.id, path: file.nixPath}))
+                .catch(window.handleErrorQuiet);
+        }
     }
 
     componentWillUnmount() {
@@ -112,19 +118,6 @@ class FileEntry extends React.PureComponent {
         const {file} = this.props;
         const url = `${window.serverHost}/static/env/${this.summary.slug}/thumbs/${file.thumbName}`;
         this.setState({thumbBgImage: `url('${url}')`});
-    };
-
-    handleVisibilityChange = isVisible => {
-        const {file} = this.props;
-        if (file.thumbState === ThumbnailState.Impossible || file.thumbState === ThumbnailState.Ready) return;
-
-        if (!isVisible || this.wasVisibleOnce) return;
-        this.wasVisibleOnce = true;
-
-        const summary = this.summary;
-        Promise.resolve()
-            .then(() => window.dataManager.requestFileThumbnail({id: summary.id, path: file.nixPath}))
-            .catch(window.handleErrorQuiet);
     };
 
     handleClick = event => {
@@ -193,35 +186,32 @@ class FileEntry extends React.PureComponent {
         });
 
         return (
-            <VisibilitySensor partialVisibility={true} offset={{top: -150, bottom: -150}}
-                              intervalDelay={500} onChange={this.handleVisibilityChange}>
-                <button {...this.handlers} className={entryClass} onClick={this.handleClick}
-                        style={wrapperStyle} data-display-index={displayIndex}>
+            <button {...this.handlers} className={entryClass} onClick={this.handleClick}
+                    style={wrapperStyle} data-display-index={displayIndex}>
 
-                    <div className={thumbnailClass} style={thumbStyle}/>
+                <div className={thumbnailClass} style={thumbStyle}/>
 
-                    <When condition={!isListView}>
-                        {selected && <div className={`file-entry-selected`}/>}
-                        {file.entityId && <div className="file-entry-tags">
-                            <TagGroup summary={this.summary} entityId={file.entityId} showEllipsis={collapseLongNames}/>
-                        </div>}
-                        <div className="file-entry-icon">
-                            <div className="file-entry-icon-content">{this.renderIcon(true)}</div>
-                        </div>
-                    </When>
-
-                    <div className="file-entry-name">
-                        <span className="file-entry-name-icon" style={iconStyle}>{this.renderIcon(false)}</span>
-                        {name}
-                        {showExtension && <span className="file-entry-name-ext">{file.ext}</span>}
-                        {isListView && file.entityId && <div className="file-entry-tags">
-                            <TagGroup summary={this.summary} entityId={file.entityId}
-                                      showEllipsis={collapseLongNames}/>
-                        </div>}
+                <When condition={!isListView}>
+                    {selected && <div className={`file-entry-selected`}/>}
+                    {file.entityId && <div className="file-entry-tags">
+                        <TagGroup summary={this.summary} entityId={file.entityId} showEllipsis={collapseLongNames}/>
+                    </div>}
+                    <div className="file-entry-icon">
+                        <div className="file-entry-icon-content">{this.renderIcon(true)}</div>
                     </div>
+                </When>
 
-                </button>
-            </VisibilitySensor>
+                <div className="file-entry-name">
+                    <span className="file-entry-name-icon" style={iconStyle}>{this.renderIcon(false)}</span>
+                    {name}
+                    {showExtension && <span className="file-entry-name-ext">{file.ext}</span>}
+                    {isListView && file.entityId && <div className="file-entry-tags">
+                        <TagGroup summary={this.summary} entityId={file.entityId}
+                                  showEllipsis={collapseLongNames}/>
+                    </div>}
+                </div>
+
+            </button>
         );
     };
 

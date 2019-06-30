@@ -4,9 +4,7 @@
  * @license GPL-3.0
  */
 
-
 export const DefaultReducerFunction = '__default';
-
 
 export const createSimpleReducer = (initialState, handlers) => {
     return (state = initialState, action) => {

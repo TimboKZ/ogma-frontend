@@ -42,6 +42,7 @@ class FileExplorer extends React.Component {
         fileHashes: PropTypes.arrayOf(PropTypes.string),
 
         // Props provided by redux.connect
+        dirReadTime: PropTypes.number,
         slimFiles: PropTypes.arrayOf(PropTypes.object),
 
         // Props passed by parent
@@ -124,14 +125,15 @@ class FileExplorer extends React.Component {
     }
 
     componentDidMount() {
-        const {path: currPath} = this.props;
+        const {path: currPath, dirReadTime} = this.props;
         const {slimFiles} = this.state;
-        const dm = window.dataManager;
         if (currPath) {
             const selection = {};
             this.setState({selection});
+            const cachedHashes = slimFiles ? slimFiles.map(f => f.hash) : null;
+            const requestData = {id: this.summary.id, path: currPath, dirReadTime, cachedHashes};
             Promise.resolve()
-                .then(() => dm.requestDirectoryContent({id: this.summary.id, path: currPath, wasCached: !!slimFiles}))
+                .then(() => window.dataManager.requestDirectoryContent(requestData))
                 .catch(window.handleError);
         }
 
@@ -143,12 +145,14 @@ class FileExplorer extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        const {path: currPath, slimFiles} = this.props;
-
+        const {path: currPath, dirReadTime} = this.props;
+        const {slimFiles} = this.state;
         if (currPath !== prevProps.path) {
             const selection = {};
             this.setState({selection});
-            window.dataManager.requestDirectoryContent({id: this.summary.id, path: currPath, wasCached: !!slimFiles})
+            const cachedHashes = slimFiles ? slimFiles.map(f => f.hash) : null;
+            const requestData = {id: this.summary.id, path: currPath, dirReadTime, cachedHashes};
+            window.dataManager.requestDirectoryContent(requestData)
                 .catch(window.handleError);
         }
     }
@@ -375,15 +379,23 @@ class FileExplorer extends React.Component {
 
 const getFileMap = (state, props) => state.envMap[props.summary.id].fileMap;
 const getData = (_, props) => ({path: props.path, fileHashes: props.fileHashes});
-const getFileHashes = createSelector([getFileMap, getData], (fileMap, data) => {
-    const {path, fileHashes} = data;
-    if (!path && path !== '') return fileHashes;
+const getReadTimeAndFileHashes = createSelector([getFileMap, getData], (fileMap, data) => {
+    const {path, fileHashes: hashes} = data;
+    let dirReadTime = 0;
+    let fileHashes = null;
 
-    const dirFile = fileMap[Util.getFileHash(path)];
-    if (dirFile) return dirFile.fileHashes;
-    return null;
+    if (!path && path !== '') fileHashes = hashes;
+    else {
+        const dirFile = fileMap[Util.getFileHash(path)];
+        if (dirFile) {
+            dirReadTime = dirFile.dirReadTime;
+            fileHashes = dirFile.fileHashes;
+        }
+    }
+    return {dirReadTime, fileHashes};
 });
-const getSlimFiles = createSelector([getFileMap, getFileHashes], (fileMap, fileHashes) => {
+const getSlimFiles = createSelector([getFileMap, getReadTimeAndFileHashes], (fileMap, data) => {
+    const {dirReadTime, fileHashes} = data;
     let slimFiles = null;
     if (fileHashes) {
         // TODO: Perhaps not just hide empty files?
@@ -394,11 +406,10 @@ const getSlimFiles = createSelector([getFileMap, getFileHashes], (fileMap, fileH
             isDir: f.isDir,
         }));
     }
-    return {slimFiles};
+    return {dirReadTime, slimFiles};
 });
 const getSlimFilesDeep = createDeepEqualSelector([getSlimFiles], data => data);
 
 export default connect((state, ownProps) => {
     return {...getSlimFilesDeep(state, ownProps)};
 })(FileExplorer);
-// })(withPropChecker(FileExplorer, () => 'Expl'));

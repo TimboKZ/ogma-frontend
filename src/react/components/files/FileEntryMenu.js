@@ -272,7 +272,7 @@ class FileEntryMenu extends React.Component {
                 return ModalUtil.fire({
                     title: 'Choose a new name:',
                     input: 'text',
-                    inputValue: file.base,
+                    inputValue: file.name,
                     inputAttributes: {autocapitalize: 'off'},
                     inputValidator: value => {
                         value = value.trim();
@@ -284,7 +284,7 @@ class FileEntryMenu extends React.Component {
                     showLoaderOnConfirm: true,
                     preConfirm: (newFileName) => {
                         const oldPath = file.nixPath;
-                        const newPath = path.join(path.dirname(file.nixPath), newFileName.trim());
+                        const newPath = path.join(path.dirname(file.nixPath), `${newFileName.trim()}${file.ext}`);
                         return window.ipcModule.renameFile({id: this.summary.id, oldPath, newPath})
                             .catch(error => Swal.showValidationMessage(`Renaming failed: ${error}`));
                     },

@@ -102,7 +102,6 @@ class FileList extends React.Component {
 
         const hash = fileHashes[index];
         const selected = !!selection[hash];
-        if (selected) console.log('Selected', hash);
         return <div key={hash} style={entryStyle}>
             <div ref={assignElem}>
                 <FileEntry hash={hash} summary={this.summary} displayIndex={index} view={view}
@@ -155,7 +154,7 @@ class FileList extends React.Component {
                     const columnWidth = sizeData.columnWidth + GutterSize;
                     const rowHeight = sizeData.rowHeight + GutterSize;
 
-                    const columnCount = Math.floor((width - 20) / columnWidth);
+                    const columnCount = Math.max(1, Math.floor((width - 20) / columnWidth));
                     const rowCount = Math.ceil(fileHashes.length / columnCount);
 
                     return (

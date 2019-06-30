@@ -112,19 +112,19 @@ export default class DataManager {
      * @param {object} data
      * @param {string} data.id Environment ID
      * @param {string} data.path Path relative to environment route
-     * @param {boolean} data.wasCached Available
+     * @param {number} data.dirReadTime Timestamp at which directory was last read
+     * @param {string[]} data.cachedHashes Previously cached hashes
      */
     requestDirectoryContent(data) {
-        if (data.wasCached) {
-            // TODO: Do some re-fetching or updates on the directory in the future.
-            return Promise.resolve();
+        if (data.cachedHashes) {
+            return window.ipcModule.scanDirectoryForChanges(data);
         }
 
         return window.ipcModule.getDirectoryContents({id: data.id, path: data.path})
             .then(result => {
                 const {directory, files} = result;
                 EnvDispatcher.updateFiles(data.id, files.concat([directory]));
-                EnvDispatcher.setDirectoryContent(data.id, directory.hash, _.map(files, f => f.hash));
+                EnvDispatcher.setDirectoryContent(data.id, directory, _.map(files, f => f.hash));
                 return null;
             });
     }
