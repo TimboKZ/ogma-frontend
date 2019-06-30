@@ -1,13 +1,13 @@
 /**
- * @author v1ndic4te
- * @copyright 2018
- * @licence GPL-3.0
+ * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
+ * @copyright 2019
+ * @license GPL-3.0
  */
 
 import React from 'react';
 import c from 'classnames';
-import PropTypes from 'prop-types';
 import {Link} from 'react-router-dom';
+import * as PropTypes from 'prop-types';
 
 import Icon from './Icon';
 import {BulmaSizes} from '../../util/typedef';

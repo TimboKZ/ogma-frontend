@@ -7,16 +7,16 @@
 import _ from 'lodash';
 import {createReducer} from 'redux-starter-kit';
 
-import {ReduxActions} from '../util/typedef';
+import {ActionTypes} from './Action';
 
 export const tagIdArrayReducer = createReducer([], {
-    [ReduxActions.SetAllTags]: (state, action) => {
+    [ActionTypes.SetAllTags]: (state, action) => {
         const tags = action.payload;
         const tagIds = new Array(tags.length);
         for (let i = 0; i < tags.length; ++i) tagIds[i] = tags[i].id;
         return tagIds;
     },
-    [ReduxActions.AddNewTags]: (state, action) => {
+    [ActionTypes.UpdateTags]: (state, action) => {
         const tags = action.payload;
         const newTagIds = new Array(tags.length);
         for (let i = 0; i < tags.length; ++i) {

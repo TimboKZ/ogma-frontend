@@ -6,30 +6,49 @@
 
 import {combineReducers} from 'redux';
 import reduceReducers from 'reduce-reducers';
-import {createReducer} from 'redux-starter-kit';
 
+import {ActionTypes} from './Action';
 import {tagMapReducer} from './TagMapReducer';
 import {fileMapReducer} from './FileMapReducer';
 import {entityMapReducer} from './EntityMapReducer';
+import {createSimpleReducer} from './SimpleReducer';
+import {DefaultEnvRoutePath} from '../util/typedef';
 import {tagIdArrayReducer} from './TagIdArrayReducer';
 import {tabBrowseReducer, tabSearchReducer} from './TabReducer';
-import {ReduxActions, DefaultEnvRoutePath} from '../util/typedef';
 
 const subRouteReducer = (state = DefaultEnvRoutePath, action) => {
-    if (action.type !== ReduxActions.UpdateEnvSubRoute) return state;
+    if (action.type !== ActionTypes.UpdateSubRoute) return state;
     return action.payload;
 };
 
 const summaryReducer = (state = {}, action) => {
-    if (action.type !== ReduxActions.UpdateSummary) return state;
+    if (action.type !== ActionTypes.UpdateSummary) return state;
     return action.payload;
 };
 
-export const envMiscReducer = createReducer({}, {
-    [ReduxActions.RemoveMultipleFiles]: (state, action) => {
+export const envMiscReducer = createSimpleReducer({}, {
+    [ActionTypes.RemoveEntities]: (state, action) => {
+        const entityIds = action.payload;
+        let {entityMap, fileMap} = state;
+        entityMap = {...entityMap};
+        for (let i = 0; i < entityIds.length; ++i) {
+            const entityId = entityIds[i];
+            const entity = entityMap[entityId];
+            delete entityMap[entityId];
+            if (entity && fileMap[entity.hash]) {
+                fileMap = {...fileMap};
+                fileMap[entity.hash] = {
+                    ...fileMap[entity.hash],
+                    entityId: null,
+                };
+            }
+        }
+        return {...state, entityMap, fileMap};
+    },
+    [ActionTypes.RemoveFiles]: (state, action) => {
         // Delete entity when file is deleted
         const deletedHashes = action.payload;
-        let {fileMap, entityMap} = state;
+        let {entityMap, fileMap} = state;
         entityMap = {...entityMap};
         for (const fileHash of deletedHashes) {
             const file = fileMap[fileHash];

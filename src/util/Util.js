@@ -10,9 +10,14 @@ import Promise from 'bluebird';
 import deepEqual from 'fast-deep-equal';
 import {detailedDiff} from 'deep-object-diff';
 
+import packageData from '../../package.json';
 import {ExplorerOptions, SortOrder} from './typedef';
 
 export default class Util {
+
+    static getPackageVersion() {
+        return packageData.version;
+    }
 
     static deepClone(object) {
         return JSON.parse(JSON.stringify(object));

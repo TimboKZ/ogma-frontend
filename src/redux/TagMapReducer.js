@@ -6,10 +6,10 @@
 
 import {createReducer} from 'redux-starter-kit';
 
-import {ReduxActions} from '../util/typedef';
+import {ActionTypes} from './Action';
 
 export const tagMapReducer = createReducer({}, {
-    [ReduxActions.SetAllTags]: (state, action) => {
+    [ActionTypes.SetAllTags]: (state, action) => {
         const tags = action.payload;
         const tagMap = {};
         for (let i = 0; i < tags.length; ++i) {
@@ -18,12 +18,15 @@ export const tagMapReducer = createReducer({}, {
         }
         return tagMap;
     },
-    [ReduxActions.AddNewTags]: (state, action) => {
+    [ActionTypes.UpdateTags]: (state, action) => {
         const tags = action.payload;
         const tagMap = {...state};
         for (let i = 0; i < tags.length; ++i) {
             const tag = tags[i];
-            tagMap[tag.id] = tag;
+            tagMap[tag.id] = {
+                ...tagMap[tag.id],
+                ...tag,
+            };
         }
         return tagMap;
     },

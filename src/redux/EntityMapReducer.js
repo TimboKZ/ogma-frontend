@@ -7,10 +7,10 @@
 import _ from 'lodash';
 import {createReducer} from 'redux-starter-kit';
 
-import {ReduxActions} from '../util/typedef';
+import {ActionTypes} from './Action';
 
 export const entityMapReducer = createReducer({}, {
-    [ReduxActions.TagFiles]: (state, action) => {
+    [ActionTypes.TagFiles]: (state, action) => {
         const {entities: slimEntities, tagIds} = action.payload;
         const entityMap = {...state};
         for (let i = 0; i < slimEntities.length; ++i) {
@@ -25,7 +25,7 @@ export const entityMapReducer = createReducer({}, {
         }
         return entityMap;
     },
-    [ReduxActions.UntagFiles]: (state, action) => {
+    [ActionTypes.UntagFiles]: (state, action) => {
         const {entityIds, tagIds} = action.payload;
         const entityMap = {...state};
         for (let i = 0; i < entityIds.length; ++i) {
@@ -40,7 +40,7 @@ export const entityMapReducer = createReducer({}, {
         return entityMap;
     },
 
-    [ReduxActions.SetAllEntities]: (state, action) => {
+    [ActionTypes.SetAllEntities]: (state, action) => {
         const entities = action.payload;
         // Uncomment if we'll need entityIDs in the future
         const entityMap = {};
@@ -50,7 +50,7 @@ export const entityMapReducer = createReducer({}, {
         }
         return entityMap;
     },
-    [ReduxActions.UpdateEntities]: (state, action) => {
+    [ActionTypes.UpdateEntities]: (state, action) => {
         const partialSlimEntities = action.payload;
         const entityMap = {...state};
         for (let i = 0; i < partialSlimEntities.length; ++i) {
@@ -63,7 +63,7 @@ export const entityMapReducer = createReducer({}, {
         return entityMap;
     },
     
-    [ReduxActions.OverwriteMultipleFileDetails]: (state, action) => {
+    [ActionTypes.UpdateFiles]: (state, action) => {
         // Update entity info based on file changes
         const files = action.payload;
         const entityMap = {...state};

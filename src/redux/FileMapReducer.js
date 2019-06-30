@@ -8,10 +8,10 @@ import _ from 'lodash';
 import {createReducer} from 'redux-starter-kit';
 
 import Util from '../util/Util';
-import {ReduxActions} from '../util/typedef';
+import {ActionTypes} from './Action';
 
 export const fileMapReducer = createReducer({}, {
-    [ReduxActions.TagFiles]: (state, action) => {
+    [ActionTypes.TagFiles]: (state, action) => {
         const {entities: slimEntities} = action.payload;
         const fileMap = {...state};
         for (let i = 0; i < slimEntities.length; ++i) {
@@ -26,17 +26,17 @@ export const fileMapReducer = createReducer({}, {
         return fileMap;
     },
 
-    [ReduxActions.SetDirectoryContent]: (state, action) => {
-        const {directory: dir, fileHashes} = action.payload;
+    [ActionTypes.SetDirectoryContent]: (state, action) => {
+        const {dirHash, fileHashes} = action.payload;
         const fileMap = {...state};
-        const oldDir = fileMap[dir.hash];
-        fileMap[dir.hash] = {
+        const oldDir = fileMap[dirHash];
+        fileMap[dirHash] = {
             ...oldDir,
             fileHashes: fileHashes,
         };
         return fileMap;
     },
-    [ReduxActions.OverwriteMultipleFileDetails]: (state, action) => {
+    [ActionTypes.UpdateFiles]: (state, action) => {
         const files = action.payload;
         const fileMap = {...state};
         const dirHashMap = {};
@@ -76,7 +76,7 @@ export const fileMapReducer = createReducer({}, {
 
         return fileMap;
     },
-    [ReduxActions.RemoveMultipleFiles]: (state, action) => {
+    [ActionTypes.RemoveFiles]: (state, action) => {
         const deletedHashes = action.payload;
         const fileMap = {...state};
 
@@ -109,7 +109,7 @@ export const fileMapReducer = createReducer({}, {
 
         return fileMap;
     },
-    [ReduxActions.UpdateThumbStates]: (state, action) => {
+    [ActionTypes.UpdateThumbStates]: (state, action) => {
         const {thumbs, thumbState} = action.payload;
         const fileMap = {...state};
 

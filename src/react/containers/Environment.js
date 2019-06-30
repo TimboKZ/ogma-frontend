@@ -16,6 +16,7 @@ import TabSearch from './TabSearch';
 import Tabs from '../components/Tabs';
 import TabConfigure from './TabConfigure';
 import EnvIcon from '../components/EnvIcon';
+import {EnvDispatcher} from '../../redux/Action';
 import {IndexRoutePath, EnvironmentContext, EnvRoutePaths} from '../../util/typedef';
 
 const TabOptions = [
@@ -48,7 +49,7 @@ class Environment extends React.Component {
         } else {
             const hash = props.location.hash;
             const routePath = `/${path.relative(parentPath, pathName)}${hash}`;
-            window.dataManager.setEnvRoutePath({id: summary.id, path: routePath});
+            EnvDispatcher.updateSubRoute(summary.id, routePath);
         }
     }
 
@@ -56,7 +57,7 @@ class Environment extends React.Component {
         // Remember the current subroute
         const {summary} = this.props;
         if (!routePath.startsWith(EnvRoutePaths.browse)) {
-            window.dataManager.setEnvRoutePath({id: summary.id, path: routePath});
+            EnvDispatcher.updateSubRoute(summary.id, routePath);
         }
     };
 

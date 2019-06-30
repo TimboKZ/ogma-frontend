@@ -13,13 +13,13 @@ import * as PropTypes from 'prop-types';
 import {
     EnvSummaryPropType,
     MenuIds,
-    ReduxActions,
     TagSearchCondition,
 } from '../../util/typedef';
 import Util from '../../util/Util';
 import Tabs from '../components/Tabs';
 import Icon from '../components/Icon';
 import TagGroup from '../components/TagGroup';
+import {TabSearchDispatcher} from '../../redux/Action';
 import FileExplorer from '../components/files/FileExplorer';
 import {createShallowEqualObjectSelector} from '../../redux/Selector';
 
@@ -53,7 +53,7 @@ class TabSearch extends React.Component {
             ...this.extractGoodHashesAndLoadingList(),
         };
         this.debouncedTagFilterDispatch = _.debounce(tagFilter =>
-            window.dataManager.dispatch(ReduxActions.TabSearchChangeTagFilter, this.summary.id, tagFilter), 100);
+            TabSearchDispatcher.changeTagFilter(this.summary.id, tagFilter), 100);
     }
 
     componentDidMount() {
@@ -110,24 +110,19 @@ class TabSearch extends React.Component {
         return {goodHashes, entitiesToBeLoaded};
     }
 
-    selectTag = tagId => {
-        const actionData = {tagId, selected: true};
-        window.dataManager.dispatch(ReduxActions.TabSearchChangeTagSelection, this.summary.id, actionData);
-    };
+    /** @param {string} tagId */
+    selectTag = tagId => TabSearchDispatcher.changeTagSelection(this.summary.id, {tagId, selected: true});
 
-    deselectTag = tagId => {
-        const actionData = {tagId, selected: false};
-        window.dataManager.dispatch(ReduxActions.TabSearchChangeTagSelection, this.summary.id, actionData);
-    };
+    /** @param {string} tagId */
+    deselectTag = tagId => TabSearchDispatcher.changeTagSelection(this.summary.id, {tagId, selected: false});
 
     handleTagFilterChange = tagFilter => {
         this.setState({tagFilter});
         this.debouncedTagFilterDispatch(tagFilter);
     };
 
-    handleTagSearchConditionChange = conditionId => {
-        window.dataManager.dispatch(ReduxActions.TabSearchChangeTagSearchCondition, this.summary.id, conditionId);
-    };
+    handleTagSearchConditionChange = conditionId =>
+        TabSearchDispatcher.changeTagSearchCondition(this.summary.id, conditionId);
 
     renderAvailableTags(availableTags) {
         const {tagFilter: propTagFilter} = this.props;

@@ -12,42 +12,6 @@ import * as PropTypes from 'prop-types';
  * @property {boolean} localClient
  */
 
-/**
- * @typedef {object} ReduxAction
- * @property {string} type
- * @property {string} [envId]
- * @property {*} data
- */
-export const ReduxActions = {
-    SetClientDetails: 'set-client-details',
-    SetConnectionList: 'set-conn-list',
-    AddConnection: 'add-conn',
-    RemoveConnection: 'remove-conn',
-
-    UpdateSummaries: 'update-summaries',
-    UpdateSummary: 'update-summary',
-
-    SetAllTags: 'set-all-tags',
-    AddNewTags: 'add-new-tags',
-    TagFiles: 'tag-files',
-    UntagFiles: 'untag-files',
-
-    SetAllEntities: 'set-all-entities',
-    UpdateEntities: 'update-entities',
-
-    SetDirectoryContent: 'set-dir-contents',
-    OverwriteMultipleFileDetails: 'overwrite-multi-file-details',
-    RemoveMultipleFiles: 'remove-files',
-    UpdateThumbStates: 'update-thumb-state',
-
-    UpdateEnvSubRoute: 'update-sub-route',
-
-    TabBrowseChangePath: 'browse-change-path',
-    TabSearchChangeTagSelection: 'search-change-selection',
-    TabSearchChangeTagSearchCondition: 'search-change-tag-cond',
-    TabSearchChangeTagFilter: 'search-change-tag-filter',
-};
-
 export const IndexRoutePath = '/';
 
 export const BulmaSizes = ['small', 'medium', 'large'];

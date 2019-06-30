@@ -6,8 +6,9 @@
 
 import _ from 'lodash';
 
+import {ActionTypes} from './Action';
 import {envBaseReducer} from './EnvBaseReducer';
-import {DefaultEnvRoutePath, DefaultTagSearchCondition, ReduxActions} from '../util/typedef';
+import {DefaultEnvRoutePath, DefaultTagSearchCondition} from '../util/typedef';
 
 const initialGlobalState = {
     client: {
@@ -15,7 +16,6 @@ const initialGlobalState = {
         localClient: false,
     },
     connectionMap: {},
-
     envIds: [],
     envMap: {},
 };
@@ -27,9 +27,8 @@ const initialGlobalState = {
  */
 const ogmaAppReducer = (state = initialGlobalState, action) => {
     const {type, payload} = action;
-    if (!action.envId && payload && payload.id) action.envId = payload.id;
 
-    if (type === ReduxActions.SetClientDetails) {
+    if (type === ActionTypes.SetClientDetails) {
         return {
             ...state,
             client: {
@@ -37,7 +36,7 @@ const ogmaAppReducer = (state = initialGlobalState, action) => {
                 ...payload,
             },
         };
-    } else if (type === ReduxActions.SetConnectionList) {
+    } else if (type === ActionTypes.SetClientList) {
         const connectionMap = {};
         for (const conn of payload) {
             connectionMap[conn.id] = conn;
@@ -46,21 +45,21 @@ const ogmaAppReducer = (state = initialGlobalState, action) => {
             ...state,
             connectionMap,
         };
-    } else if (type === ReduxActions.AddConnection) {
+    } else if (type === ActionTypes.AddConnection) {
         const connectionMap = {...state.connectionMap};
         connectionMap[payload.id] = payload;
         return {
             ...state,
             connectionMap,
         };
-    } else if (type === ReduxActions.RemoveConnection) {
+    } else if (type === ActionTypes.RemoveConnection) {
         const connectionMap = {...state.connectionMap};
         delete connectionMap[payload];
         return {
             ...state,
             connectionMap,
         };
-    } else if (type === ReduxActions.UpdateSummaries) {
+    } else if (type === ActionTypes.UpdateSummaries) {
         const newSummaries = payload;
         const newEnvIds = _.map(newSummaries, s => s.id);
         const newEnvMap = {};

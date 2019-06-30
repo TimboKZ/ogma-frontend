@@ -6,10 +6,11 @@
 
 import {createReducer} from 'redux-starter-kit';
 
-import {DefaultTagSearchCondition, ReduxActions} from '../util/typedef';
+import {ActionTypes} from './Action';
+import {DefaultTagSearchCondition} from '../util/typedef';
 
 export const tabBrowseReducer = createReducer({path: '/'}, {
-    [ReduxActions.TabBrowseChangePath]: (state, action) => {
+    [ActionTypes.TabBrowseChangePath]: (state, action) => {
         state.path = action.payload;
     },
 });
@@ -19,17 +20,17 @@ export const tabSearchReducer = createReducer({
     tagFilter: '',
     tagSearchCondition: DefaultTagSearchCondition,
 }, {
-    [ReduxActions.TabSearchChangeTagSelection]: (state, action) => {
+    [ActionTypes.TabSearchChangeTagSelection]: (state, action) => {
         const {tagId, selected} = action.payload;
         const selectedTagsMap = {...state.selectedTagsMap};
         if (selected) selectedTagsMap[tagId] = true;
         else delete selectedTagsMap[tagId];
         return {...state, selectedTagsMap};
     },
-    [ReduxActions.TabSearchChangeTagSearchCondition]: (state, action) => {
+    [ActionTypes.TabSearchChangeTagSearchCondition]: (state, action) => {
         state.tagSearchCondition = action.payload;
     },
-    [ReduxActions.TabSearchChangeTagFilter]: (state, action) => {
+    [ActionTypes.TabSearchChangeTagFilter]: (state, action) => {
         state.tagFilter = action.payload;
     },
 });

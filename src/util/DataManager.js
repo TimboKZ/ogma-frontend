@@ -8,8 +8,9 @@ import _ from 'lodash';
 import Denque from 'denque';
 import Promise from 'bluebird';
 
-import {BackendEvents, FileErrorStatus, ReduxActions} from './typedef';
 import ErrorHandler from './ErrorHandler';
+import {BackendEvents, FileErrorStatus} from './typedef';
+import {Dispatcher, EnvDispatcher} from '../redux/Action';
 
 export default class DataManager {
 
@@ -37,23 +38,23 @@ export default class DataManager {
 
         // Setup listeners
         const listenerMap = {
-            [BackendEvents.AddConnection]: client => this.dispatch(ReduxActions.AddConnection, client),
-            [BackendEvents.RemoveConnection]: clientId => this.dispatch(ReduxActions.RemoveConnection, clientId),
+            [BackendEvents.AddConnection]: Dispatcher.addConnection,
+            [BackendEvents.RemoveConnection]: Dispatcher.removeConnection,
 
-            [BackendEvents.UpdateEnvSummaries]: summaries => this.dispatch(ReduxActions.UpdateSummaries, summaries),
-            [BackendEvents.UpdateEnvSummary]: summary => this.dispatch(ReduxActions.UpdateSummary, summary.id, summary),
+            [BackendEvents.UpdateEnvSummaries]: Dispatcher.updateSummaries,
+            [BackendEvents.UpdateEnvSummary]: summary => EnvDispatcher.updateSummary(summary.id, summary),
 
-            [BackendEvents.EnvAddEntities]: data => null,
-            [BackendEvents.EnvRemoveEntities]: data => null,
-            [BackendEvents.EnvUpdateEntities]: data => this.dispatch(ReduxActions.UpdateEntities, data.id, data.entities),
+            [BackendEvents.EnvAddEntities]: data => EnvDispatcher.updateEntities(data.id, data.entities),
+            [BackendEvents.EnvRemoveEntities]: data => EnvDispatcher.removeEntities(data.id, data.entityIds),
+            [BackendEvents.EnvUpdateEntities]: data => EnvDispatcher.updateEntities(data.id, data.entities),
 
-            [BackendEvents.EnvAddFiles]: data => this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, data.files),
-            [BackendEvents.EnvRemoveFiles]: data => this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, data.hashes),
-            [BackendEvents.EnvUpdateThumbs]: data => this.dispatch(ReduxActions.UpdateThumbStates, data.id, data),
+            [BackendEvents.EnvAddFiles]: data => EnvDispatcher.updateFiles(data.id, data.files),
+            [BackendEvents.EnvRemoveFiles]: data => EnvDispatcher.removeFiles(data.id, data.hashes),
+            [BackendEvents.EnvUpdateThumbs]: data => EnvDispatcher.updateThumbStates(data.id, data.thumbs, data.thumbState),
 
-            [BackendEvents.EnvAddTags]: data => this.dispatch(ReduxActions.AddNewTags, data.id, data.tags),
-            [BackendEvents.EnvTagFiles]: data => this.dispatch(ReduxActions.TagFiles, data.id, data),
-            [BackendEvents.EnvUntagFiles]: data => this.dispatch(ReduxActions.UntagFiles, data.id, data),
+            [BackendEvents.EnvAddTags]: data => EnvDispatcher.updateTags(data.id, data.tags),
+            [BackendEvents.EnvTagFiles]: data => EnvDispatcher.tagFiles(data.id, data.entities, data.tagIds),
+            [BackendEvents.EnvUntagFiles]: data => EnvDispatcher.untagFiles(data.id, data.entityIds, data.tagIds),
         };
         for (const eventName in BackendEvents) {
             if (!listenerMap[BackendEvents[eventName]]) {
@@ -71,49 +72,29 @@ export default class DataManager {
         return this._syncBaseState();
     }
 
-    dispatch(...args) {
-        const type = args[0];
-        let envId;
-        let payload;
-        if (args.length === 2) {
-            payload = args[1];
-        } else {
-            envId = args[1];
-            payload = args[2];
-        }
-        this.store.dispatch({type, envId, payload});
-    }
-
     _syncBaseState() {
-        return Promise.resolve()
-            .then(() => Promise.all([
-                this._fetchClientDetails(),
-                this._fetchConnectionList(),
-                this._fetchEnvSummaries(),
-            ]))
+        const fetchPromises = [
+            window.ipcModule.getClientDetails(),
+            window.ipcModule.getClientList(),
+            window.ipcModule.getSummaries(),
+        ];
+        const fetchDispatchers = [
+            Dispatcher.setClientDetails,
+            Dispatcher.setClientList,
+            Dispatcher.updateSummaries,
+        ];
+        return Promise.all(fetchPromises)
+            .then(results => {
+                for (let i = 0; i < results.length; ++i) fetchDispatchers[i](results[i]);
+            })
             .then(() => Promise.all([this._fetchAllTags(), this._fetchAllEntities()]));
-    }
-
-    _fetchClientDetails() {
-        return window.ipcModule.getClientDetails()
-            .then(client => this.dispatch(ReduxActions.SetClientDetails, client));
-    }
-
-    _fetchConnectionList() {
-        return window.ipcModule.getConnectionList()
-            .then(connections => this.dispatch(ReduxActions.SetConnectionList, connections));
-    }
-
-    _fetchEnvSummaries() {
-        return window.ipcModule.getSummaries()
-            .then(summaries => this.dispatch(ReduxActions.UpdateSummaries, summaries));
     }
 
     _fetchAllTags() {
         const envIds = this.store.getState().envIds;
         const promises = _.map(envIds, id => window.ipcModule.getAllTags({id}));
 
-        const dispatchFunc = (envId, allTags) => this.dispatch(ReduxActions.SetAllTags, envId, allTags);
+        const dispatchFunc = (envId, allTags) => EnvDispatcher.setAllTags(envId, allTags);
         return Promise.all(promises)
             .then(allAllTags => _.zipWith(envIds, allAllTags, dispatchFunc));
     }
@@ -122,18 +103,9 @@ export default class DataManager {
         const envIds = this.store.getState().envIds;
         const promises = _.map(envIds, id => window.ipcModule.getAllEntities({id}));
 
-        const dispatchFunc = (envId, allEntities) => this.dispatch(ReduxActions.SetAllEntities, envId, allEntities);
+        const dispatchFunc = (envId, allEntities) => EnvDispatcher.setAllEntities(envId, allEntities);
         return Promise.all(promises)
             .then(allAllEntities => _.zipWith(envIds, allAllEntities, dispatchFunc));
-    }
-
-    /**
-     * @param {object} data
-     * @param {string} data.id Environment ID
-     * @param {string} data.path Sub route (URL) of the environment
-     */
-    setEnvRoutePath(data) {
-        this.dispatch(ReduxActions.UpdateEnvSubRoute, data.id, data.path);
     }
 
     /**
@@ -151,10 +123,8 @@ export default class DataManager {
         return window.ipcModule.getDirectoryContents({id: data.id, path: data.path})
             .then(result => {
                 const {directory, files} = result;
-                this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, files);
-
-                const actionData = {directory, fileHashes: _.map(files, f => f.hash)};
-                this.dispatch(ReduxActions.SetDirectoryContent, data.id, actionData);
+                EnvDispatcher.updateFiles(data.id, files.concat([directory]));
+                EnvDispatcher.setDirectoryContent(data.id, directory.hash, _.map(files, f => f.hash));
                 return null;
             });
     }
@@ -168,7 +138,6 @@ export default class DataManager {
         window.ipcModule.requestFileThumbnails({id: envId, paths: requestQueue.toArray()});
     }
 
-    // noinspection JSUnusedGlobalSymbols
     /**
      * @param {object} data
      * @param {string} data.id Environment ID
@@ -210,9 +179,9 @@ export default class DataManager {
                 }
 
                 if (badHashQueue.length > 0) {
-                    this.dispatch(ReduxActions.RemoveMultipleFiles, data.id, badHashQueue.toArray());
+                    EnvDispatcher.removeFiles(data.id, badHashQueue.toArray());
                 }
-                this.dispatch(ReduxActions.OverwriteMultipleFileDetails, data.id, newFileQueue.toArray());
+                EnvDispatcher.updateFiles(data.id, newFileQueue.toArray());
                 return null;
             });
     }

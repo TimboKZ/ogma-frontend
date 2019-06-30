@@ -13,8 +13,9 @@ import * as PropTypes from 'prop-types';
 
 import Icon from '../components/Icon';
 import Breadcrumbs from '../components/Breadcrumbs';
+import {EnvDispatcher, TabBrowseDispatcher} from '../../redux/Action';
 import FileExplorer from '../components/files/FileExplorer';
-import {EnvironmentContext, MenuIds, ExplorerOptionsDefaults, ReduxActions} from '../../util/typedef';
+import {EnvironmentContext, MenuIds, ExplorerOptionsDefaults} from '../../util/typedef';
 
 class TabBrowse extends React.Component {
 
@@ -69,12 +70,12 @@ class TabBrowse extends React.Component {
 
         const normPath = path.normalize(newPath);
         if (normPath !== prevPath) {
-            window.dataManager.dispatch(ReduxActions.TabBrowseChangePath, this.summary.id, normPath);
+            TabBrowseDispatcher.changePath(this.summary.id, normPath);
         }
 
         const hash = `#${normPath}`;
         history.push(hash);
-        window.dataManager.setEnvRoutePath({id: this.summary.id, path: `${tabPath}${hash}`});
+        EnvDispatcher.updateSubRoute(this.summary.id, `${tabPath}${hash}`);
     };
 
     pathToBreadcrumbs(normPath) {

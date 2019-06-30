@@ -1,12 +1,12 @@
 /**
  * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
  * @copyright 2019
- * @license LGPL-3.0
+ * @license GPL-3.0
  */
 
 import React from 'react';
 import c from 'classnames';
-import PropTypes from 'prop-types';
+import * as PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {EnvironmentContext, EnvSummaryPropType} from '../../util/typedef';
