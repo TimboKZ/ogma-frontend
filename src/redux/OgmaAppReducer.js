@@ -8,58 +8,46 @@ import _ from 'lodash';
 
 import {ActionTypes} from './Action';
 import {envBaseReducer} from './EnvBaseReducer';
+import {createSimpleReducer, DefaultReducerFunction} from './SimpleReducer';
 
-const initialGlobalState = {
+const ogmaAppReducer = createSimpleReducer({
     client: {
         id: null,
         localClient: false,
     },
     connectionMap: {},
+
+    settings: {
+        forceWebViewBehaviour: false,
+    },
+
     envIds: [],
     envMap: {},
-};
-
-/**
- * @param {object} state
- * @param {ReduxAction} action
- * @returns {object}
- */
-const ogmaAppReducer = (state = initialGlobalState, action) => {
-    const {type, payload} = action;
-
-    if (type === ActionTypes.SetClientDetails) {
-        return {
-            ...state,
-            client: {
-                ...state.client,
-                ...payload,
-            },
-        };
-    } else if (type === ActionTypes.SetClientList) {
+}, {
+    [ActionTypes.SetClientDetails]: (state, action) => {
+        const client = {...state.client, ...action.payload};
+        return {...state, client};
+    },
+    [ActionTypes.SetClientList]: (state, action) => {
+        const clients = action.payload;
         const connectionMap = {};
-        for (const conn of payload) {
-            connectionMap[conn.id] = conn;
-        }
-        return {
-            ...state,
-            connectionMap,
-        };
-    } else if (type === ActionTypes.AddConnection) {
+        for (const client of clients) connectionMap[client.id] = client;
+        return {...state, connectionMap};
+    },
+    [ActionTypes.AddConnection]: (state, action) => {
+        const client = action.payload;
         const connectionMap = {...state.connectionMap};
-        connectionMap[payload.id] = payload;
-        return {
-            ...state,
-            connectionMap,
-        };
-    } else if (type === ActionTypes.RemoveConnection) {
+        connectionMap[client.id] = client;
+        return {...state, connectionMap};
+    },
+    [ActionTypes.RemoveConnection]: (state, action) => {
+        const clientId = action.payload;
         const connectionMap = {...state.connectionMap};
-        delete connectionMap[payload];
-        return {
-            ...state,
-            connectionMap,
-        };
-    } else if (type === ActionTypes.UpdateSummaries) {
-        const newSummaries = payload;
+        delete connectionMap[clientId];
+        return {...state, connectionMap};
+    },
+    [ActionTypes.UpdateSummaries]: (state, action) => {
+        const newSummaries = action.payload;
         const {envMap: oldEnvMap} = state;
         const envIds = _.map(newSummaries, s => s.id);
         const envMap = {};
@@ -68,16 +56,19 @@ const ogmaAppReducer = (state = initialGlobalState, action) => {
             envMap[summary.id] = envBaseReducer(oldEnvMap[summary.id], newAction);
         }
         return {...state, envIds, envMap};
-    } else if (action.envId) {
-        // Environment specific action
-        const {envId} = action;
-        const envMap = {...state.envMap};
-        envMap[envId] = envBaseReducer(state.envMap[envId], action);
-        return {...state, envMap};
-    } else if (window.isDevelopment && type !== '@@INIT') {
-        console.warn(`[Redux] Non-global action called without 'envId': ${type}`);
-    }
-    return state;
-};
+    },
+    [DefaultReducerFunction]: (state, action) => {
+        if (action.envId) {
+            // Environment specific action
+            const {envId} = action;
+            const envMap = {...state.envMap};
+            envMap[envId] = envBaseReducer(state.envMap[envId], action);
+            return {...state, envMap};
+        } else if (window.isDevelopment && action.type !== '@@INIT') {
+            console.warn(`[Redux] Non-global action called without 'envId': ${action.type}`);
+        }
+        return state;
+    },
+});
 
 export default ogmaAppReducer;
