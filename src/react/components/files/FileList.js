@@ -54,6 +54,13 @@ class FileList extends React.Component {
         window.removeEventListener('resize', this.requestListUpdate);
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        const {selection} = this.props;
+        if (selection !== prevProps.selection) {
+            this.debouncedRequestListUpdate();
+        }
+    }
+
     requestListUpdate = () => {
         if (this.listRef && this.listRef.current) this.listRef.current.resetAfterIndex(0);
     };
@@ -94,11 +101,13 @@ class FileList extends React.Component {
         };
 
         const hash = fileHashes[index];
+        const selected = !!selection[hash];
+        if (selected) console.log('Selected', hash);
         return <div key={hash} style={entryStyle}>
             <div ref={assignElem}>
                 <FileEntry hash={hash} summary={this.summary} displayIndex={index} view={view}
                            showExtension={showExtensions} collapseLongNames={collapseLongNames}
-                           selected={!!selection[hash]} contextMenuId={contextMenuId}
+                           selected={selected} contextMenuId={contextMenuId}
                            onSingleClick={handleSingleClick} onDoubleClick={handleDoubleClick}/>
             </div>
         </div>;
