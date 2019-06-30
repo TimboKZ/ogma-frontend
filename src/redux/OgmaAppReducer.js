@@ -8,7 +8,6 @@ import _ from 'lodash';
 
 import {ActionTypes} from './Action';
 import {envBaseReducer} from './EnvBaseReducer';
-import {DefaultEnvRoutePath, DefaultTagSearchCondition} from '../util/typedef';
 
 const initialGlobalState = {
     client: {
@@ -61,29 +60,14 @@ const ogmaAppReducer = (state = initialGlobalState, action) => {
         };
     } else if (type === ActionTypes.UpdateSummaries) {
         const newSummaries = payload;
-        const newEnvIds = _.map(newSummaries, s => s.id);
-        const newEnvMap = {};
-        for (let i = 0; i < newSummaries.length; ++i) {
-            const summary = newSummaries[i];
-            const oldEnv = state.envMap[summary.id];
-            const env = oldEnv ? {...oldEnv} : {
-                subRoute: DefaultEnvRoutePath,
-                tagIds: [],
-                tagMap: {},
-                entityMap: {},
-                fileMap: {},
-                tabBrowse: {path: '/'},
-                tabSearch: {selectedTagsMap: {}, tagFilter: '', tagSearchCondition: DefaultTagSearchCondition},
-            };
-            env.summary = summary;
-            newEnvMap[summary.id] = env;
+        const {envMap: oldEnvMap} = state;
+        const envIds = _.map(newSummaries, s => s.id);
+        const envMap = {};
+        for (const summary of newSummaries) {
+            const newAction = {type: ActionTypes.UpdateSummary, envId: summary.id, payload: summary};
+            envMap[summary.id] = envBaseReducer(oldEnvMap[summary.id], newAction);
         }
-
-        return {
-            ...state,
-            envIds: newEnvIds,
-            envMap: newEnvMap,
-        };
+        return {...state, envIds, envMap};
     } else if (action.envId) {
         // Environment specific action
         const {envId} = action;
