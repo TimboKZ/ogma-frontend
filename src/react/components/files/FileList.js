@@ -21,7 +21,7 @@ const FileViewConfigs = {
 };
 
 const ListItemSize = 31;
-const GutterSize = 6;
+const GutterSize = 4;
 
 class FileList extends React.Component {
 
@@ -71,6 +71,19 @@ class FileList extends React.Component {
         return ListItemSize;
     };
 
+    getItemKey = input => {
+        let index;
+        if (typeof input === 'number') {
+            index = input;
+        } else {
+            const {rowIndex, columnIndex, data} = input;
+            index = rowIndex * data.columnCount + columnIndex;
+        }
+        const {fileHashes} = this.props;
+        const hash = fileHashes[index];
+        return hash ? hash : index;
+    };
+
     renderFileEntry = entryData => {
         const {
             fileHashes, showExtensions, collapseLongNames, selection, contextMenuId,
@@ -91,7 +104,6 @@ class FileList extends React.Component {
                 height: style.height - GutterSize,
             };
         }
-        // console.log('File entry I:', index);
         if (index >= fileHashes.length) return null;
 
         const assignElem = elem => {
@@ -166,6 +178,7 @@ class FileList extends React.Component {
                             columnCount={columnCount}
                             rowCount={rowCount}
                             overscanRowCount={3}
+                            itemKey={this.getItemKey}
                             itemData={{columnCount, rowCount}}>
                             {this.renderFileEntry}
                         </Grid>

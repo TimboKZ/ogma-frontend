@@ -41,7 +41,13 @@ export default class DataManager {
             [BackendEvents.AddConnection]: Dispatcher.addConnection,
             [BackendEvents.RemoveConnection]: Dispatcher.removeConnection,
 
-            [BackendEvents.UpdateEnvSummaries]: Dispatcher.updateSummaries,
+            [BackendEvents.CreateEnvironment]: summary => {
+                EnvDispatcher.updateSummary(summary.id, summary);
+                this._fetchEnvDetails({id: summary.id})
+                    .catch(window.handleError);
+            },
+            [BackendEvents.CloseEnvironment]: Dispatcher.closeEnvironment,
+
             [BackendEvents.UpdateEnvSummary]: summary => EnvDispatcher.updateSummary(summary.id, summary),
 
             [BackendEvents.EnvAddEntities]: data => EnvDispatcher.updateEntities(data.id, data.entities),
@@ -73,39 +79,37 @@ export default class DataManager {
     }
 
     _syncBaseState() {
-        const fetchPromises = [
-            window.ipcModule.getClientDetails(),
-            window.ipcModule.getClientList(),
-            window.ipcModule.getSummaries(),
-        ];
-        const fetchDispatchers = [
-            Dispatcher.setClientDetails,
-            Dispatcher.setClientList,
-            Dispatcher.updateSummaries,
-        ];
-        return Promise.all(fetchPromises)
-            .then(results => {
-                for (let i = 0; i < results.length; ++i) fetchDispatchers[i](results[i]);
+        return Promise.all([window.ipcModule.getClientDetails(), window.ipcModule.getClientList()])
+            .then(result => {
+                const [clientDetails, clientList] = result;
+                Dispatcher.setClientDetails(clientDetails);
+                Dispatcher.setClientList(clientList);
+                return window.ipcModule.getSummaries();
             })
-            .then(() => Promise.all([this._fetchAllTags(), this._fetchAllEntities()]));
+            .then(summaries => {
+                Dispatcher.setSummaries(summaries);
+                const envPromises = new Array(summaries.length);
+                for (let i = 0; i < summaries.length; ++i) {
+                    const summary = summaries[i];
+                    envPromises[i] = this._fetchEnvDetails({id: summary.id});
+                }
+                return Promise.all(envPromises);
+            })
+            .catch(window.handleError);
     }
 
-    _fetchAllTags() {
-        const envIds = this.store.getState().envIds;
-        const promises = _.map(envIds, id => window.ipcModule.getAllTags({id}));
-
-        const dispatchFunc = (envId, allTags) => EnvDispatcher.setAllTags(envId, allTags);
-        return Promise.all(promises)
-            .then(allAllTags => _.zipWith(envIds, allAllTags, dispatchFunc));
-    }
-
-    _fetchAllEntities() {
-        const envIds = this.store.getState().envIds;
-        const promises = _.map(envIds, id => window.ipcModule.getAllEntities({id}));
-
-        const dispatchFunc = (envId, allEntities) => EnvDispatcher.setAllEntities(envId, allEntities);
-        return Promise.all(promises)
-            .then(allAllEntities => _.zipWith(envIds, allAllEntities, dispatchFunc));
+    /**
+     * @param {object} data
+     * @param {string} data.id
+     * @private
+     */
+    _fetchEnvDetails(data) {
+        return Promise.all([window.ipcModule.getAllTags(data), window.ipcModule.getAllEntities(data)])
+            .then(result => {
+                const [allTags, allEntities] = result;
+                EnvDispatcher.setAllTags(data.id, allTags);
+                EnvDispatcher.setAllEntities(data.id, allEntities);
+            });
     }
 
     /**

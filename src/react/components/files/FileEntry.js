@@ -4,6 +4,7 @@
  * @license GPL-3.0
  */
 
+import _ from 'lodash';
 import React from 'react';
 import c from 'classnames';
 import {When} from 'react-if';
@@ -14,6 +15,7 @@ import {prepareContextMenuHandlers} from 'react-context-menu-wrapper';
 
 import Icon from '../Icon';
 import TagGroup from '../TagGroup';
+import Util from '../../../util/Util';
 import {FolderIconData, getIconData} from '../../../util/IconUtil';
 import {
     FileView,
@@ -26,6 +28,7 @@ import {
     EnvSummaryPropType,
     FilePropType,
 } from '../../../util/typedef';
+import withPropChecker from '../PropChecker';
 
 class FileEntry extends React.PureComponent {
 
@@ -76,6 +79,7 @@ class FileEntry extends React.PureComponent {
         }
 
         this.clickCount = 0;
+        this.mounted = false;
         this.imageLoadPromise = null;
         this.triggerSingleClick = (event, displayIndex) => {
             this.clickCount = 0;
@@ -98,18 +102,19 @@ class FileEntry extends React.PureComponent {
                 .then(() => window.dataManager.requestFileThumbnail({id: summary.id, path: file.nixPath}))
                 .catch(window.handleErrorQuiet);
         }
+        this.mounted = true;
     }
 
     componentWillUnmount() {
+        this.mounted = false;
         if (this.imageLoadPromise) this.imageLoadPromise.cancel();
     }
 
     // noinspection JSCheckFunctionSignatures
     componentDidUpdate(prevProps) {
         const oldFile = prevProps.file;
-        const newFile = this.props.file;
-        if (oldFile.thumbState !== newFile.thumbState
-            && newFile.thumbState === ThumbnailState.Ready) {
+        const {thumbState} = this.props.file;
+        if (oldFile.thumbState !== thumbState && thumbState === ThumbnailState.Ready) {
             this.loadThumbnail();
         }
     }
@@ -117,7 +122,12 @@ class FileEntry extends React.PureComponent {
     loadThumbnail = () => {
         const {file} = this.props;
         const url = `${window.serverHost}/static/env/${this.summary.slug}/thumbs/${file.thumbName}`;
-        this.setState({thumbBgImage: `url('${url}')`});
+        _.defer(() => {
+            if (!this.mounted) return;
+            this.imageLoadPromise = Util.loadImage(url, file.thumbName)
+                .then(() => this.setState({thumbBgImage: `url('${url}')`}))
+                .catch(window.handleErrorQuiet);
+        });
     };
 
     handleClick = event => {
@@ -223,3 +233,4 @@ export default connect((state, ownProps) => {
     const file = fileMap[hash];
     return {file};
 })(fastMount(FileEntry));
+// })(withPropChecker(FileEntry));

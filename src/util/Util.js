@@ -13,6 +13,8 @@ import {detailedDiff} from 'deep-object-diff';
 import packageData from '../../package.json';
 import {ExplorerOptions, SortOrder} from './typedef';
 
+const imageCacheMap = {};
+
 export default class Util {
 
     static getPackageVersion() {
@@ -23,10 +25,15 @@ export default class Util {
         return JSON.parse(JSON.stringify(object));
     }
 
-    static loadImage(url) {
+    static loadImage(url, id = null) {
+        if (id && imageCacheMap[id]) return Promise.resolve();
+
         return new Promise((resolve, reject) => {
             let img = new Image();
-            img.addEventListener('load', e => resolve(img));
+            img.addEventListener('load', () => {
+                if (id) imageCacheMap[id] = true;
+                resolve();
+            });
             img.addEventListener('error', () => {
                 reject(new Error(`Failed to load image from URL: ${url}`));
             });

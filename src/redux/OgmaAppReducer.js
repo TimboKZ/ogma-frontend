@@ -46,7 +46,7 @@ const ogmaAppReducer = createSimpleReducer({
         delete connectionMap[clientId];
         return {...state, connectionMap};
     },
-    [ActionTypes.UpdateSummaries]: (state, action) => {
+    [ActionTypes.SetSummaries]: (state, action) => {
         const newSummaries = action.payload;
         const {envMap: oldEnvMap} = state;
         const envIds = _.map(newSummaries, s => s.id);
@@ -55,6 +55,15 @@ const ogmaAppReducer = createSimpleReducer({
             const newAction = {type: ActionTypes.UpdateSummary, envId: summary.id, payload: summary};
             envMap[summary.id] = envBaseReducer(oldEnvMap[summary.id], newAction);
         }
+        return {...state, envIds, envMap};
+    },
+    [ActionTypes.CloseEnvironment]: (state, action) => {
+        const envId = action.payload;
+        const envIds = [...state.envIds];
+        const envMap = {...state.envMap};
+        const index = envIds.indexOf(envId);
+        if (index > -1) envIds.splice(index, 1);
+        delete envMap[envId];
         return {...state, envIds, envMap};
     },
     [DefaultReducerFunction]: (state, action) => {

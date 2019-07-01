@@ -47,18 +47,20 @@ export const entityMapReducer = createReducer({}, {
         for (let i = 0; i < entities.length; ++i) {
             const entity = entities[i];
             entityMap[entity.id] = entity;
+            delete entityMap[entity.id].nixPath;
         }
         return entityMap;
     },
     [ActionTypes.UpdateEntities]: (state, action) => {
-        const partialSlimEntities = action.payload;
+        const entities = action.payload;
         const entityMap = {...state};
-        for (let i = 0; i < partialSlimEntities.length; ++i) {
-            const entity = partialSlimEntities[i];
+        for (let i = 0; i < entities.length; ++i) {
+            const entity = entities[i];
             entityMap[entity.id] = {
                 ...entityMap[entity.id],
                 ...entity,
             };
+            delete entityMap[entity.id].nixPath;
         }
         return entityMap;
     },

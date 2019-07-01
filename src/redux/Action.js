@@ -17,7 +17,9 @@ export const ActionTypes = {
     AddConnection: 'add-conn',
     RemoveConnection: 'remove-conn',
 
-    UpdateSummaries: 'update-summaries',
+    CloseEnvironment: 'close-env',
+
+    SetSummaries: 'set-summaries',
     UpdateSummary: 'update-summary',
     UpdateSubRoute: 'update-sub-route',
 
@@ -120,8 +122,13 @@ export class Dispatcher {
     }
 
     /** @param {EnvSummary[]} summaries */
-    static updateSummaries(summaries) {
-        dispatchAction(ActionTypes.UpdateSummaries, summaries);
+    static setSummaries(summaries) {
+        dispatchAction(ActionTypes.SetSummaries, summaries);
+    }
+
+    /** @param {string} envId */
+    static closeEnvironment(envId) {
+        dispatchAction(ActionTypes.CloseEnvironment, envId);
     }
 
 }
