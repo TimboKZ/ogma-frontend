@@ -28,7 +28,6 @@ import {
     EnvSummaryPropType,
     FilePropType,
 } from '../../../util/typedef';
-import withPropChecker from '../PropChecker';
 
 class FileEntry extends React.PureComponent {
 

@@ -19,6 +19,7 @@ export default class DataManager {
      * @param {object} data.socket
      * @param {object} data.store
      */
+
     constructor(data) {
         this.socket = data.socket;
         this.store = data.store;
@@ -121,14 +122,17 @@ export default class DataManager {
      */
     requestDirectoryContent(data) {
         if (data.cachedHashes) {
-            return window.ipcModule.scanDirectoryForChanges(data);
+            return window.ipcModule.scanDirectoryForChanges(data)
+                .then(fileDetails => {
+                    EnvDispatcher.updateDirectory(data.id, fileDetails);
+                });
         }
 
         return window.ipcModule.getDirectoryContents({id: data.id, path: data.path})
             .then(result => {
                 const {directory, files} = result;
                 EnvDispatcher.updateFiles(data.id, files.concat([directory]));
-                EnvDispatcher.setDirectoryContent(data.id, directory, _.map(files, f => f.hash));
+                EnvDispatcher.updateDirectory(data.id, directory, _.map(files, f => f.hash));
                 return null;
             });
     }

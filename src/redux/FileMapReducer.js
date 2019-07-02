@@ -26,15 +26,16 @@ export const fileMapReducer = createReducer({}, {
         return fileMap;
     },
 
-    [ActionTypes.SetDirectoryContent]: (state, action) => {
+    [ActionTypes.UpdateDirectory]: (state, action) => {
         const {dirFile, fileHashes} = action.payload;
         const fileMap = {...state};
         const oldDir = fileMap[dirFile.hash];
         fileMap[dirFile.hash] = {
             ...oldDir,
-            fileHashes: fileHashes,
+            ...dirFile,
             dirReadTime: dirFile.readTime,
         };
+        if (fileHashes) fileMap[dirFile.hash].fileHashes = fileHashes;
         return fileMap;
     },
     [ActionTypes.UpdateFiles]: (state, action) => {

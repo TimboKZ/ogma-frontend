@@ -32,9 +32,9 @@ export const ActionTypes = {
     UpdateEntities: 'update-entities',
     RemoveEntities: 'remove-entities',
 
-    SetDirectoryContent: 'set-dir-contents',
     UpdateFiles: 'update-files',
     RemoveFiles: 'remove-files',
+    UpdateDirectory: 'update-directory',
     UpdateThumbStates: 'update-thumb-state',
 
     TabBrowseChangePath: 'browse-change-path',
@@ -212,10 +212,10 @@ export class EnvDispatcher {
     /**
      * @param {string} envId
      * @param {FileDetails} dirFile
-     * @param {string[]} fileHashes
+     * @param {string[]} [fileHashes]
      */
-    static setDirectoryContent(envId, dirFile, fileHashes) {
-        dispatchAction(ActionTypes.SetDirectoryContent, envId, {dirFile, fileHashes});
+    static updateDirectory(envId, dirFile, fileHashes = null) {
+        dispatchAction(ActionTypes.UpdateDirectory, envId, {dirFile, fileHashes});
     }
 
 

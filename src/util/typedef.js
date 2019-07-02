@@ -101,7 +101,7 @@ export const FilePropType = PropTypes.shape({
     base: PropTypes.string,
     ext: PropTypes.string,
     name: PropTypes.string,
-    isDir: PropTypes.boolean,
+    isDir: PropTypes.bool,
     thumb: PropTypes.number,
     entityId: PropTypes.string,
     tagIds: PropTypes.arrayOf(PropTypes.string),
