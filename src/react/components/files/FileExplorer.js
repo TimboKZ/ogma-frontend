@@ -315,7 +315,7 @@ class FileExplorer extends React.Component {
         const {path: currPath} = this.props;
         if (!currPath) return;
 
-        // noinspection JSUnusedGlobalSymbols
+        // noinspection JSUnusedGlobalSymbols,JSCheckFunctionSignatures
         return ModalUtil.fire({
             title: 'Choose folder name:',
             input: 'text',

@@ -18,8 +18,8 @@ export default function withPropChecker(WrappedComponent, getId = null) {
         componentDidUpdate(prevProps, prevState, snapshot) {
             let id = '[...]';
             if (getId) id = `[${getId(this.props)} ${counter++}]`;
-            const shallowKeys = Util.getShallowDiffKeys(prevProps, this.props, id);
-            const deepKeys = Util.getDeepDiffKeys(prevProps, this.props, id);
+            const shallowKeys = Util.getShallowDiffKeys(prevProps, this.props);
+            const deepKeys = Util.getDeepDiffKeys(prevProps, this.props);
             
             const shallowChangeMap = {};
             shallowKeys.map(k => shallowChangeMap[k] = Util.getShallowDiffKeys(prevProps[k], this.props[k]))

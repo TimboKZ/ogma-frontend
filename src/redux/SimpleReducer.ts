@@ -19,4 +19,4 @@ export function createSimpleReducer<S>(initialState: S, handlers: ReduxHandlerMa
             return state;
         }
     };
-};
+}

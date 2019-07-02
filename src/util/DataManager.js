@@ -73,7 +73,7 @@ export default class DataManager {
         this.emitter.on('*', function (...args) {
             const eventName = this.event;
             const listener = listenerMap[eventName];
-            console.log(`[ProxyEmitter] Received event ${eventName} from backend.`);
+            if (window.isDevelopment) console.log(`[ProxyEmitter] Received event ${eventName} from backend.`);
             if (!listener) return;
             listener(...args);
         });

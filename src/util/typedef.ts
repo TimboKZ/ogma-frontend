@@ -1,7 +1,7 @@
 /**
- * @author v1ndic4te
- * @copyright 2018
- * @licence GPL-3.0
+ * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
+ * @copyright 2019
+ * @license GPL-3.0
  */
 
 import React from 'react';
@@ -13,6 +13,7 @@ import BackendTypedef from '../../../shared/typedef';
 import {AppState, ReduxAction} from '../redux/ReduxTypedef';
 
 declare global {
+    // noinspection JSUnusedGlobalSymbols
     interface Window {
         isDevelopment: boolean;
         ipcModule: IpcModule,
@@ -21,11 +22,6 @@ declare global {
         handleError: (error: Error) => void,
     }
 }
-
-/**
- * @typedef {object} HelloResponse
- * @property {boolean} localClient
- */
 
 export const IndexRoutePath = '/';
 
