@@ -4,9 +4,11 @@
  * @license GPL-3.0
  */
 
-export const DefaultReducerFunction = '__default';
+import {ReduxHandler, ReduxHandlerMap} from "./ReduxTypedef";
 
-export const createSimpleReducer = (initialState, handlers) => {
+export const DefaultReducerFunction: string = '__default';
+
+export const createSimpleReducer = <S extends {}>(initialState: S, handlers: ReduxHandlerMap<S>): ReduxHandler<S> => {
     return (state = initialState, action) => {
         if (handlers.hasOwnProperty(action.type)) {
             return handlers[action.type](state, action);

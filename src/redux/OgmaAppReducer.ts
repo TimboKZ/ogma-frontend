@@ -1,7 +1,7 @@
 /**
  * @author Timur Kuzhagaliyev <tim.kuzh@gmail.com>
  * @copyright 2019
- * @license LGPL-3.0
+ * @license GPL-3.0
  */
 
 import _ from 'lodash';
@@ -9,10 +9,11 @@ import _ from 'lodash';
 import {ActionTypes} from './Action';
 import {envBaseReducer} from './EnvBaseReducer';
 import {createSimpleReducer, DefaultReducerFunction} from './SimpleReducer';
+import {AppState, ClientMap, EnvMap, ReduxHandlerMap} from './ReduxTypedef';
 
-const ogmaAppReducer = createSimpleReducer({
+const ogmaAppReducer = createSimpleReducer<AppState>({
     client: {
-        id: null,
+        id: 'unknown',
         localClient: false,
     },
     connectionMap: {},
@@ -30,7 +31,7 @@ const ogmaAppReducer = createSimpleReducer({
     },
     [ActionTypes.SetClientList]: (state, action) => {
         const clients = action.payload;
-        const connectionMap = {};
+        const connectionMap: ClientMap = {};
         for (const client of clients) connectionMap[client.id] = client;
         return {...state, connectionMap};
     },
@@ -50,7 +51,7 @@ const ogmaAppReducer = createSimpleReducer({
         const newSummaries = action.payload;
         const {envMap: oldEnvMap} = state;
         const envIds = _.map(newSummaries, s => s.id);
-        const envMap = {};
+        const envMap: EnvMap = {};
         for (const summary of newSummaries) {
             const newAction = {type: ActionTypes.UpdateSummary, envId: summary.id, payload: summary};
             envMap[summary.id] = envBaseReducer(oldEnvMap[summary.id], newAction);
@@ -78,6 +79,6 @@ const ogmaAppReducer = createSimpleReducer({
         }
         return state;
     },
-});
+} as ReduxHandlerMap<AppState>);
 
 export default ogmaAppReducer;

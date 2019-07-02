@@ -16,13 +16,14 @@ import TabSearch from './TabSearch';
 import Tabs from '../components/Tabs';
 import TabConfigure from './TabConfigure';
 import EnvIcon from '../components/EnvIcon';
+import TabManageTags from './TabManageTags';
 import {EnvDispatcher} from '../../redux/Action';
 import {IndexRoutePath, EnvironmentContext, EnvRoutePaths} from '../../util/typedef';
 
 const TabOptions = [
     {path: EnvRoutePaths.browse, icon: 'eye', name: 'Browse', passAllRouterProps: true, comp: TabBrowse},
     {path: EnvRoutePaths.search, icon: 'search', name: 'Search', passAllRouterProps: false, comp: TabSearch},
-    {path: EnvRoutePaths.tags, icon: 'tags', name: 'Manage tags', passAllRouterProps: false},
+    {path: EnvRoutePaths.tags, icon: 'tags', name: 'Manage tags', passAllRouterProps: false, comp: TabManageTags},
     {path: EnvRoutePaths.sinks, icon: 'filter', name: 'Manage sinks', passAllRouterProps: false},
     {path: EnvRoutePaths.configure, icon: 'cog', name: 'Configure', passAllRouterProps: false, comp: TabConfigure},
 ];

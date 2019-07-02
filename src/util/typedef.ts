@@ -5,7 +5,15 @@
  */
 
 import React from 'react';
-import * as PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
+
+import BackendTypedef from '../../../shared/typedef';
+
+declare global {
+    interface Window {
+        isDevelopment: boolean;
+    }
+}
 
 /**
  * @typedef {object} HelloResponse
@@ -44,14 +52,15 @@ export const MenuIds = {
 /**
  * @enum {number} FileView
  */
-export const FileView = {
-    List: 0,
-    MediumThumb: 1,
-    LargeThumb: 2,
-    EnumMax: 3, // Used in for loops and such
-};
+export enum FileView {
+    List = 0,
+    MediumThumb = 1,
+    LargeThumb = 2,
+    EnumMax = 3, // Used in for loops and such
+}
+
 export const DefaultFileView = FileView.MediumThumb;
-export const FileViewToClass = view => {
+export const FileViewToClass = (view: FileView) => {
     let className = '';
     if (view === FileView.List) className = 'view-list';
     else {
@@ -117,5 +126,19 @@ export const KeyCode = {
     C: 67,
 };
 
-export * from '../../../shared/typedef';
+// Reexporting parts of backend typedef
+export const BackendEvents = BackendTypedef.BackendEvents;
+export const EnvProperty = BackendTypedef.EnvProperty;
+
+export const Colors = BackendTypedef.Colors;
+export const ColorsLight = BackendTypedef.ColorsLight;
+export const ColorsDark = BackendTypedef.ColorsDark;
+
+export const FileErrorStatus = BackendTypedef.FileErrorStatus;
+export const ThumbnailState = BackendTypedef.ThumbnailState;
+
+export const VideoExtensions = BackendTypedef.VideoExtensions;
+export const ImageExtensions = BackendTypedef.ImageExtensions;
+export const AudioExtensions = BackendTypedef.AudioExtensions;
+
 
