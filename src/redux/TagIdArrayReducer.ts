@@ -8,8 +8,9 @@ import _ from 'lodash';
 import {createReducer} from 'redux-starter-kit';
 
 import {ActionTypes} from './Action';
+import {ReduxHandlerMap} from './ReduxTypedef';
 
-export const tagIdArrayReducer = createReducer([], {
+export const tagIdArrayReducer = createReducer([] as string[], {
     [ActionTypes.SetAllTags]: (state, action) => {
         const tags = action.payload;
         const tagIds = new Array(tags.length);
@@ -25,5 +26,11 @@ export const tagIdArrayReducer = createReducer([], {
         }
         return _.union(state, newTagIds);
     },
-});
+    [ActionTypes.RemoveTags]: (state, action) => {
+        const tagIds = action.payload;
+        const newTagIds = _.difference(state, tagIds);
+        if (state.length === newTagIds.length) return state;
+        return newTagIds;
+    },
+} as ReduxHandlerMap<string[]>);
 

@@ -6,12 +6,19 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {EnhancedStore} from 'redux-starter-kit';
 
+import IpcModule from '../../../shared/IpcModule';
 import BackendTypedef from '../../../shared/typedef';
+import {AppState, ReduxAction} from '../redux/ReduxTypedef';
 
 declare global {
     interface Window {
         isDevelopment: boolean;
+        ipcModule: IpcModule,
+        store: EnhancedStore<AppState, ReduxAction>,
+
+        handleError: (error: Error) => void,
     }
 }
 

@@ -97,4 +97,13 @@
             }
         }
     }
+
+    &-manage-tags {
+        .tag-group-tag {
+            margin: 2px;
+            &-name {
+                font-weight: 500;
+            }
+        }
+    }
 }

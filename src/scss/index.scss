@@ -80,6 +80,12 @@ button {
 }
 
 
+// Remove box shadow from `react-color`
+.sketch-picker {
+    box-shadow: rgba(0, 0, 0, 0.15) 0 0 0 1px !important;
+}
+
+
 // Adjust Swal2 styling
 .swal2-popup {
     border-radius: 3px !important;

@@ -139,7 +139,7 @@ class TabSearch extends React.Component {
                            onChange={event => this.handleTagFilterChange(event.target.value)}/>
                 </p>
             </div>
-            <TagGroup tagIds={availableTags} summary={this.summary} onClick={this.selectTag}
+            <TagGroup tagIds={availableTags} showCount={true} summary={this.summary} onClick={this.selectTag}
                       showPlaceHolderOnEmpty={true} nameFilter={propTagFilter}/>
         </div>;
     }
@@ -156,7 +156,7 @@ class TabSearch extends React.Component {
                 </div>
                 ):
             </div>
-            <TagGroup tagIds={selectedTags} summary={this.summary} onClick={this.deselectTag}
+            <TagGroup tagIds={selectedTags} showCount={true} summary={this.summary} onClick={this.deselectTag}
                       showPlaceHolderOnEmpty={true}/>
         </div>;
     }

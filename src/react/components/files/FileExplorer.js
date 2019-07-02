@@ -10,8 +10,8 @@ import React from 'react';
 import Fuse from 'fuse.js';
 import Swal from 'sweetalert2';
 import Promise from 'bluebird';
-import equal from 'fast-deep-equal';
 import {connect} from 'react-redux';
+import deepEqual from 'fast-deep-equal';
 import * as PropTypes from 'prop-types';
 import {createSelector} from 'reselect';
 import validFilename from 'valid-filename';
@@ -77,7 +77,7 @@ class FileExplorer extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState, nextContext) {
-        return !equal(this.props, nextProps) || !equal(this.state, nextState);
+        return !deepEqual(this.props, nextProps) || !deepEqual(this.state, nextState);
     }
 
     static sortFiles(slimFiles, options) {
@@ -105,7 +105,7 @@ class FileExplorer extends React.Component {
         const {slimFiles} = props;
         const {filter, options} = state;
 
-        if (!equal(slimFiles, state.slimFiles)) {
+        if (!deepEqual(slimFiles, state.slimFiles)) {
             const sortedHashes = FileExplorer.sortFiles(slimFiles, options);
             let fuse = null;
             let filteredHashes = sortedHashes;

@@ -4,7 +4,8 @@
  * @license GPL-3.0
  */
 
-// Redux state typedefs
+import {Action} from 'redux';
+
 export type EnvSummary = {
     id: string,
     path: string,
@@ -18,14 +19,66 @@ export type Tag = {
     name: string,
     color: string,
 }
+
+export enum TagFieldNames {
+    Id = 'id',
+    Name = 'name',
+    Color = 'color',
+}
+
 export type TagMap = {
     [id: string]: Tag,
 }
 
+export type Entity = {
+    id: string,
+    hash: string,
+    isDir: boolean,
+    tagIds: string[],
+}
+export type EntityMap = {
+    [id: string]: Entity,
+}
+
+export type TagEntityMap = {
+    [tagId: string]: string[],
+}
+
+export type File = {
+    hash: string,
+    nixPath: string,
+    base: string,
+    ext: string,
+    name: string,
+    isDir: boolean,
+    entityId?: string,
+    thumbName?: string,
+    thumbState?: number,
+    readTime: number,
+}
+export type FileMap = {
+    [hash: string]: File,
+}
+
+export type TabBrowse = {
+    path: string,
+}
+export type TabSearch = {
+    selectedTagsMap: { [tagId: string]: boolean },
+    tagFilter: string,
+    tagSearchCondition: number,
+}
+
 export type EnvState = {
     summary: EnvSummary,
+    subRoute: string,
     tagIds: string[],
     tagMap: TagMap,
+    entityMap: EntityMap,
+    tagEntityMap: TagEntityMap,
+    fileMap: FileMap,
+    tabBrowse: TabBrowse,
+    tabSearch: TabSearch,
 }
 export type EnvMap = {
     [id: string]: EnvState,
@@ -39,6 +92,7 @@ export type ClientMap = { [id: string]: Client };
 export type Settings = {
     forceWebViewBehaviour: boolean,
 };
+
 export type AppState = {
     client: Client,
     connectionMap: ClientMap,
@@ -48,8 +102,7 @@ export type AppState = {
 }
 
 // Redux actions
-export type ReduxAction = {
-    type: string,
+export type ReduxAction = Action & {
     envId?: string,
     payload?: any,
 }

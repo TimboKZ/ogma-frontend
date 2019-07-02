@@ -45,7 +45,7 @@ class App extends React.Component {
                 <div className="columns force-fullheight">
                     <div className="column is-narrow"><Sidebar summaries={summaries}/></div>
                     <div className="column force-fullheight">
-                        <div className="box force-fullheight">
+                        <div className="box no-border force-fullheight">
                             <Switch>
                                 <Route path="/" exact component={AppDashboard}/>
                                 <Route path="/settings" component={AppSettings}/>

@@ -60,6 +60,8 @@ export default class DataManager {
             [BackendEvents.EnvUpdateThumbs]: data => EnvDispatcher.updateThumbStates(data.id, data.thumbs, data.thumbState),
 
             [BackendEvents.EnvAddTags]: data => EnvDispatcher.updateTags(data.id, data.tags),
+            [BackendEvents.EnvRemoveTags]: data => EnvDispatcher.removeTags(data.id, data.tagIds),
+            [BackendEvents.EnvUpdateTags]: data => EnvDispatcher.updateTags(data.id, data.tags),
             [BackendEvents.EnvTagFiles]: data => EnvDispatcher.tagFiles(data.id, data.entities, data.tagIds),
             [BackendEvents.EnvUntagFiles]: data => EnvDispatcher.untagFiles(data.id, data.entityIds, data.tagIds),
         };
@@ -71,6 +73,7 @@ export default class DataManager {
         this.emitter.on('*', function (...args) {
             const eventName = this.event;
             const listener = listenerMap[eventName];
+            console.log(`[ProxyEmitter] Received event ${eventName} from backend.`);
             if (!listener) return;
             listener(...args);
         });

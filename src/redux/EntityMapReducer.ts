@@ -8,8 +8,9 @@ import _ from 'lodash';
 import {createReducer} from 'redux-starter-kit';
 
 import {ActionTypes} from './Action';
+import {EntityMap, ReduxHandlerMap} from './ReduxTypedef';
 
-export const entityMapReducer = createReducer({}, {
+export const entityMapReducer = createReducer({} as EntityMap, {
     [ActionTypes.TagFiles]: (state, action) => {
         const {entities: slimEntities, tagIds} = action.payload;
         const entityMap = {...state};
@@ -43,10 +44,12 @@ export const entityMapReducer = createReducer({}, {
     [ActionTypes.SetAllEntities]: (state, action) => {
         const entities = action.payload;
         // Uncomment if we'll need entityIDs in the future
-        const entityMap = {};
+        const entityMap: EntityMap = {};
         for (let i = 0; i < entities.length; ++i) {
             const entity = entities[i];
             entityMap[entity.id] = entity;
+
+            // @ts-ignore Cleaning up the object received from backend
             delete entityMap[entity.id].nixPath;
         }
         return entityMap;
@@ -60,6 +63,8 @@ export const entityMapReducer = createReducer({}, {
                 ...entityMap[entity.id],
                 ...entity,
             };
+
+            // @ts-ignore Cleaning up the object received from backend
             delete entityMap[entity.id].nixPath;
         }
         return entityMap;
@@ -83,4 +88,4 @@ export const entityMapReducer = createReducer({}, {
         }
         return entityMap;
     },
-});
+} as ReduxHandlerMap<EntityMap>);

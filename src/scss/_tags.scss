@@ -14,12 +14,25 @@
         color: #fff !important;
         display: inline-block;
         border-radius: 3px;
-        font-weight: bold;
-        padding: 1px 4px;
+        overflow: hidden;
         margin: 1px;
 
         &:focus {
             text-decoration: underline;
+        }
+
+        &-name {
+            display: inline-block;
+            vertical-align: top;
+            font-weight: bold;
+            padding: 1px 4px;
+        }
+
+        &-count {
+            background-color: rgba(0, 0, 0, 0.35);
+            display: inline-block;
+            vertical-align: top;
+            padding: 1px 4px;
         }
 
         &-empty {
