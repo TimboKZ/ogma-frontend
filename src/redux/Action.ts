@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 
-import {Client, EnvSummary, Tag} from './ReduxTypedef';
+import {Client, EnvSummary, Tag, TagOrderField} from './ReduxTypedef';
 
 export enum ActionTypes {
     SetClientDetails = 'set-client-details',
@@ -37,6 +37,9 @@ export enum ActionTypes {
     TabSearchChangeTagSelection = 'search-change-selection',
     TabSearchChangeTagSearchCondition = 'search-change-tag-cond',
     TabSearchChangeTagFilter = 'search-change-tag-filter',
+    TabTagsSelectTagId = 'tags-select-tag-id',
+    TabTagsChangeTagFilter = 'tags-change-tag-filter',
+    TabTagsChangeTagOrderField = 'tags-change-tag-order-field',
 }
 
 const getStore = () => window.store;
@@ -74,6 +77,22 @@ export class TabSearchDispatcher {
 
     static changeTagSearchCondition(envId: string, conditionId: number) {
         dispatchAction(ActionTypes.TabSearchChangeTagSearchCondition, envId, conditionId);
+    }
+
+}
+
+export class TabTagsDispatcher {
+
+    static selectTagId(envId: string, tagId: string) {
+        dispatchAction(ActionTypes.TabTagsSelectTagId, envId, tagId);
+    }
+
+    static changeTagFilter(envId: string, tagFilter: string) {
+        dispatchAction(ActionTypes.TabTagsChangeTagFilter, envId, tagFilter);
+    }
+
+    static changeTagOrderField(envId: string, tagOrderField: TagOrderField) {
+        dispatchAction(ActionTypes.TabTagsChangeTagOrderField, envId, tagOrderField);
     }
 
 }

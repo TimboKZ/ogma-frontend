@@ -7,6 +7,7 @@
 import {createReducer} from 'redux-starter-kit';
 
 import {ActionTypes} from './Action';
+import {TabSearch, TabTags, TagOrderField} from './ReduxTypedef';
 import {DefaultTagSearchCondition} from '../util/typedef';
 
 export const tabBrowseReducer = createReducer({path: '/'}, {
@@ -15,7 +16,7 @@ export const tabBrowseReducer = createReducer({path: '/'}, {
     },
 });
 
-export const tabSearchReducer = createReducer({
+export const tabSearchReducer = createReducer<TabSearch>({
     selectedTagsMap: {},
     tagFilter: '',
     tagSearchCondition: DefaultTagSearchCondition,
@@ -35,3 +36,18 @@ export const tabSearchReducer = createReducer({
     },
 });
 
+export const tabTagsReducer = createReducer<TabTags>({
+    selectedTagId: '',
+    tagFilter: '',
+    tagOrderField: TagOrderField.EntityCount,
+}, {
+    [ActionTypes.TabTagsSelectTagId]: (state, action) => {
+        state.selectedTagId = action.payload;
+    },
+    [ActionTypes.TabTagsChangeTagOrderField]: (state, action) => {
+        state.tagOrderField = action.payload;
+    },
+    [ActionTypes.TabTagsChangeTagFilter]: (state, action) => {
+        state.tagFilter = action.payload;
+    },
+});

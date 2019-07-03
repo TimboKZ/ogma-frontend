@@ -99,8 +99,25 @@
     }
 
     &-manage-tags {
+        .level {
+            margin-bottom: 0.7rem;
+            font-size: 0.95em;
+        }
+        .field {
+            &, & .button, & .input {
+                font-size: 0.9em;
+            }
+        }
+        .tabs {
+            display: block !important;
+            margin: 0 6px;
+            button {
+                padding: 0.2em 0.5em;
+                font-size: 0.95em;
+            }
+        }
         .tag-group-tag {
-            margin: 2px;
+            margin: 0 4px 4px 0;
             &-name {
                 font-weight: 500;
             }

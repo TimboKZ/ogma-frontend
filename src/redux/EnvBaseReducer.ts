@@ -16,7 +16,7 @@ import {createSimpleReducer} from './SimpleReducer';
 import {DefaultEnvRoutePath} from '../util/typedef';
 import {tagIdArrayReducer} from './TagIdArrayReducer';
 import {tagEntityMapReducer} from './TagEntityMapReducer';
-import {tabBrowseReducer, tabSearchReducer} from './TabReducer';
+import {tabBrowseReducer, tabSearchReducer, tabTagsReducer} from './TabReducer';
 import {EnvState, EnvSummary, ReduxAction} from './ReduxTypedef';
 import Util from '../util/Util';
 
@@ -113,6 +113,7 @@ const envNewReducer = combineReducers<EnvState>({
     fileMap: fileMapReducer,
     tabBrowse: tabBrowseReducer,
     tabSearch: tabSearchReducer,
+    tabTags: tabTagsReducer,
 });
 
 export const envBaseReducer = reduceReducers<EnvState>(envNewReducer, envMiscReducer);

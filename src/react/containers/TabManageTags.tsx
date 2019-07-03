@@ -6,20 +6,39 @@
 
 import _ from 'lodash';
 import {Helmet} from 'react-helmet';
-import {connect} from 'react-redux';
 import React, {FormEvent} from 'react';
 import * as PropTypes from 'prop-types';
 import {SliderPicker} from 'react-color';
+import {connect} from 'react-redux';
 
 import Util from '../../util/Util';
+import Icon from '../components/Icon';
+import Tabs from '../components/Tabs';
 import TagComp from '../components/TagComp';
+import ModalUtil from '../../util/ModalUtil';
 import TagGroup from '../components/TagGroup';
+import {TabTagsDispatcher} from '../../redux/Action';
 import {EnvSummaryPropType} from '../../util/typedef';
 import {createShallowEqualObjectSelector} from '../../redux/Selector';
-import {AppState, BaseSelector, EnvSummary, Tag, TagFieldNames, TagMap} from '../../redux/ReduxTypedef';
-import ModalUtil from '../../util/ModalUtil';
+import {
+    AppState,
+    BaseSelector,
+    EnvSummary,
+    TabTags,
+    Tag,
+    TagFieldNames,
+    TagMap,
+    TagOrderField,
+} from '../../redux/ReduxTypedef';
+import {createSelector} from 'reselect';
 
-type TabManageTagsProps = {
+const SearchConditionOptions = [
+    {id: TagOrderField.EntityCount, name: 'File count'},
+    {id: TagOrderField.Name, name: 'Name'},
+    {id: TagOrderField.Color, name: 'Color'},
+];
+
+type TabManageTagsProps = TabTags & {
     // Props used in redux.connect
     summary: EnvSummary,
 
@@ -29,6 +48,7 @@ type TabManageTagsProps = {
 }
 
 type TabManageTagsState = {
+    tagFilter: string,
     selectedTag?: Tag,
     hasUnsavedChanges: boolean,
 }
@@ -46,11 +66,13 @@ class TabManageTags extends React.Component<TabManageTagsProps, TabManageTagsSta
 
     summary: EnvSummary;
     debouncedChangesCheck: (selectedTag?: Tag) => void;
+    debouncedTagFilterDispatch: (tagFilter: string) => void;
 
     constructor(props: TabManageTagsProps) {
         super(props);
         this.summary = props.summary;
         this.state = {
+            tagFilter: '',
             selectedTag: undefined,
             hasUnsavedChanges: false,
         };
@@ -64,6 +86,8 @@ class TabManageTags extends React.Component<TabManageTagsProps, TabManageTagsSta
             }
             this.setState({hasUnsavedChanges});
         }, 50);
+        this.debouncedTagFilterDispatch = _.debounce(tagFilter =>
+            TabTagsDispatcher.changeTagFilter(this.summary.id, tagFilter), 100);
     }
 
     componentDidUpdate(prevProps: Readonly<TabManageTagsProps>, prevState: Readonly<TabManageTagsState>): void {
@@ -121,6 +145,14 @@ class TabManageTags extends React.Component<TabManageTagsProps, TabManageTagsSta
         });
     };
 
+    handleTagFilterChange = (tagFilter: string) => {
+        this.setState({tagFilter});
+        this.debouncedTagFilterDispatch(tagFilter);
+    };
+
+    handleTagOrderFieldChange = (tagOrderField: TagOrderField) =>
+        TabTagsDispatcher.changeTagOrderField(this.summary.id, tagOrderField);
+
     renderTagForm() {
         const summary = this.summary;
         const {selectedTag: tag, hasUnsavedChanges} = this.state;
@@ -170,7 +202,8 @@ class TabManageTags extends React.Component<TabManageTagsProps, TabManageTagsSta
     }
 
     render() {
-        const {tagIds} = this.props;
+        const {tagIds, tagFilter: propTagFilter, tagOrderField} = this.props;
+        const {tagFilter} = this.state;
 
         return <React.Fragment>
             <Helmet><title>Tags</title></Helmet>
@@ -179,7 +212,31 @@ class TabManageTags extends React.Component<TabManageTagsProps, TabManageTagsSta
                     <div className="box">{this.renderTagForm()}</div>
                 </div>
                 <div className="column">
-                    <TagGroup summary={this.summary} tagIds={tagIds} onClick={this.selectTag} showCount={true}/>
+                    <div className="level">
+                        <div className="level-left">
+                            <div className="level-item">
+                                <div className="field has-addons">
+                                    <p className="control">
+                                        <button className="button is-static"><Icon name="search"/></button>
+                                    </p>
+                                    <p className="control is-expanded">
+                                        <input className="input" type="text" placeholder="Search tags" value={tagFilter}
+                                               onChange={event => this.handleTagFilterChange(event.target.value)}/>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="level-right">
+                            <div className="level-item">
+                                Order tags by
+                                <Tabs options={SearchConditionOptions} className="is-toggle"
+                                      activeOption={tagOrderField}
+                                      onOptionChange={this.handleTagOrderFieldChange}/>
+                            </div>
+                        </div>
+                    </div>
+                    <TagGroup summary={this.summary} tagIds={tagIds} onClick={this.selectTag}
+                              nameFilter={propTagFilter} showCount={true}/>
                 </div>
             </div>
         </React.Fragment>;
@@ -199,12 +256,25 @@ const getTagEntityCount: BaseSelector<any, { [tagId: string]: number }> = (state
 };
 const getShallowTagEntityCount = createShallowEqualObjectSelector(getTagEntityCount, data => data);
 const getTagIds: BaseSelector<any, string[]> = (state, props) => state.envMap[props.summary.id].tagIds;
-const getSortedTagIds = createShallowEqualObjectSelector(getTagIds, getShallowTagEntityCount, (tagIds, tagEntityCount) => {
-    return _.orderBy(tagIds, id => tagEntityCount[id], 'desc');
-});
+const getTagOrderField: BaseSelector<any, TagOrderField> = (state, props) => state.envMap[props.summary.id].tabTags.tagOrderField;
+const getSortedTagIds = createSelector(
+    [getTagIds,
+        getShallowTagMap,
+        getTagOrderField,
+        getShallowTagEntityCount],
+    (tagIds, tagMap, tagOrderField, tagEntityCount) => {
+        const orderMap: { [orderField in TagOrderField]: (id: string) => any } = {
+            [TagOrderField.EntityCount]: (id: string) => tagEntityCount[id],
+            [TagOrderField.Name]: (id: string) => tagMap[id] ? tagMap[id].name : '',
+            [TagOrderField.Color]: (id: string) => tagMap[id] ? tagMap[id].color : '',
+        };
+        return _.orderBy(tagIds, orderMap[tagOrderField], tagOrderField === TagOrderField.Name ? 'asc' : 'desc');
+    });
 export default connect((state: AppState, ownProps: any) => {
+    const {tabTags} = state.envMap[ownProps.summary.id];
     return {
         tagIds: getSortedTagIds(state, ownProps),
         tagMap: getShallowTagMap(state, ownProps),
+        ...tabTags,
     };
 })(TabManageTags);

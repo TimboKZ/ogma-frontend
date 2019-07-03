@@ -19,12 +19,13 @@ import EnvIcon from '../components/EnvIcon';
 import TabManageTags from './TabManageTags';
 import {EnvDispatcher} from '../../redux/Action';
 import {IndexRoutePath, EnvironmentContext, EnvRoutePaths} from '../../util/typedef';
+import TabManageSinks from './TabManageSinks';
 
 const TabOptions = [
     {path: EnvRoutePaths.browse, icon: 'eye', name: 'Browse', passAllRouterProps: true, comp: TabBrowse},
     {path: EnvRoutePaths.search, icon: 'search', name: 'Search', passAllRouterProps: false, comp: TabSearch},
     {path: EnvRoutePaths.tags, icon: 'tags', name: 'Manage tags', passAllRouterProps: false, comp: TabManageTags},
-    {path: EnvRoutePaths.sinks, icon: 'filter', name: 'Manage sinks', passAllRouterProps: false},
+    {path: EnvRoutePaths.sinks, icon: 'filter', name: 'Manage sinks', passAllRouterProps: false, comp: TabManageSinks},
     {path: EnvRoutePaths.configure, icon: 'cog', name: 'Configure', passAllRouterProps: false, comp: TabConfigure},
 ];
 for (const option of TabOptions) option.id = option.path;

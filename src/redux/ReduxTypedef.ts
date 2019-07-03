@@ -21,7 +21,6 @@ export type Tag = {
 }
 
 export enum TagFieldNames {
-    Id = 'id',
     Name = 'name',
     Color = 'color',
 }
@@ -69,6 +68,18 @@ export type TabSearch = {
     tagSearchCondition: number,
 }
 
+export enum TagOrderField {
+    EntityCount,
+    Name,
+    Color,
+}
+
+export type TabTags = {
+    selectedTagId: string,
+    tagFilter: string,
+    tagOrderField: TagOrderField,
+}
+
 export type EnvState = {
     summary: EnvSummary,
     subRoute: string,
@@ -79,6 +90,7 @@ export type EnvState = {
     fileMap: FileMap,
     tabBrowse: TabBrowse,
     tabSearch: TabSearch,
+    tabTags: TabTags,
 }
 export type EnvMap = {
     [id: string]: EnvState,

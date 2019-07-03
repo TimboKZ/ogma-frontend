@@ -95,7 +95,9 @@ class TagGroup extends React.Component<TagGroupProps, {}> {
 
         if (hiddenTagCount > 0) {
             comps.push(<div key={`hidden-tag-count`} className={hiddenClassName}>
+                <span className="tag-group-tag-name">
                 ({hiddenTagCount} tag{hiddenTagCount !== 1 ? 's' : ''} hidden)
+                </span>
             </div>);
         }
 
