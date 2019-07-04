@@ -127,9 +127,9 @@ class TabManageTags extends React.Component<TabManageTagsProps, TabManageTagsSta
         })
             .then(result => {
                 if (!result) return;
-                return window.ipcModule.removeTag({id: summary.id, tagId: tag.id});
+                return window.ipcModule.removeTag({id: summary.id, tagId: tag.id})
+                    .then(() => this.setState({selectedTag: undefined}));
             })
-            .then(() => this.setState({selectedTag: undefined}))
             .catch(window.handleError);
     };
 
@@ -157,9 +157,7 @@ class TabManageTags extends React.Component<TabManageTagsProps, TabManageTagsSta
         const summary = this.summary;
         const {selectedTag: tag, hasUnsavedChanges} = this.state;
 
-        if (!tag) {
-            return <div>Select a tag from the list on the right.</div>;
-        }
+        if (!tag) return <div>Select a tag from the list on the right.</div>;
 
         return <React.Fragment>
             <form onSubmit={this.saveTag}>

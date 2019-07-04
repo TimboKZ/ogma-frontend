@@ -59,7 +59,7 @@ class TabSearch extends React.Component {
     componentDidMount() {
         const {entitiesToBeLoaded} = this.state;
         if (entitiesToBeLoaded.length !== 0) {
-            window.dataManager.requestEntityFiles({id: this.summary.id, entityIds: entitiesToBeLoaded})
+            window.dataManager.requestEntityFiles(this.summary.id, entitiesToBeLoaded)
                 .catch(window.handleError);
         }
     }
@@ -68,7 +68,7 @@ class TabSearch extends React.Component {
         /** @type {string[]} */
         const {entitiesToBeLoaded} = this.state;
         if (!Util.shallowEqual(entitiesToBeLoaded, prevState.entitiesToBeLoaded) && entitiesToBeLoaded.length !== 0) {
-            window.dataManager.requestEntityFiles({id: this.summary.id, entityIds: entitiesToBeLoaded})
+            window.dataManager.requestEntityFiles(this.summary.id, entitiesToBeLoaded)
                 .catch(window.handleError);
         }
 

@@ -8,9 +8,11 @@ import {Set} from 'core-js';
 import reduceReducers from 'reduce-reducers';
 import {combineReducers, Reducer} from 'redux';
 
+import Util from '../util/Util';
 import {ActionTypes} from './Action';
 import {tagMapReducer} from './TagMapReducer';
 import {fileMapReducer} from './FileMapReducer';
+import SharedUtil from '../../../shared/SharedUtil';
 import {entityMapReducer} from './EntityMapReducer';
 import {createSimpleReducer} from './SimpleReducer';
 import {DefaultEnvRoutePath} from '../util/typedef';
@@ -18,7 +20,8 @@ import {tagIdArrayReducer} from './TagIdArrayReducer';
 import {tagEntityMapReducer} from './TagEntityMapReducer';
 import {tabBrowseReducer, tabSearchReducer, tabTagsReducer} from './TabReducer';
 import {EnvState, EnvSummary, ReduxAction} from './ReduxTypedef';
-import Util from '../util/Util';
+
+const jsondiffpatch = require('jsondiffpatch');
 
 const summaryReducer: Reducer<EnvSummary, ReduxAction> = (state = {} as EnvSummary, action) => {
     if (action.type !== ActionTypes.UpdateSummary) return state;
@@ -28,6 +31,16 @@ const summaryReducer: Reducer<EnvSummary, ReduxAction> = (state = {} as EnvSumma
 const subRouteReducer: Reducer<string, ReduxAction> = (state = DefaultEnvRoutePath, action) => {
     if (action.type !== ActionTypes.UpdateSubRoute) return state;
     return action.payload;
+};
+
+const sinkTreeReducer: Reducer<any, ReduxAction> = (state = null, action) => {
+    if (action.type === ActionTypes.SetSinkTree) return action.payload;
+    else if (action.type === ActionTypes.ApplySinkTreeDiff) {
+        const clone = SharedUtil.deepClone(state);
+        jsondiffpatch.patch(clone, action.payload);
+        return clone;
+    }
+    return state;
 };
 
 export const envMiscReducer = createSimpleReducer<EnvState>({} as EnvState, {
@@ -111,6 +124,7 @@ const envNewReducer = combineReducers<EnvState>({
     entityMap: entityMapReducer,
     tagEntityMap: tagEntityMapReducer,
     fileMap: fileMapReducer,
+    sinkTree: sinkTreeReducer,
     tabBrowse: tabBrowseReducer,
     tabSearch: tabSearchReducer,
     tabTags: tabTagsReducer,

@@ -4,7 +4,7 @@
  * @license GPL-3.0
  */
 
-import {Client, EnvSummary, Tag, TagOrderField} from './ReduxTypedef';
+import {Client, File, EnvSummary, Tag, TagOrderField} from './ReduxTypedef';
 
 export enum ActionTypes {
     SetClientDetails = 'set-client-details',
@@ -32,6 +32,9 @@ export enum ActionTypes {
     RemoveFiles = 'remove-files',
     UpdateDirectory = 'update-directory',
     UpdateThumbStates = 'update-thumb-state',
+
+    SetSinkTree = 'set-sink-tree',
+    ApplySinkTreeDiff = 'apply-sink-tree-diff',
 
     TabBrowseChangePath = 'browse-change-path',
     TabSearchChangeTagSelection = 'search-change-selection',
@@ -188,10 +191,6 @@ export class EnvDispatcher {
         dispatchAction(ActionTypes.UpdateFiles, envId, files);
     }
 
-    /**
-     * @param {string} envId
-     * @param {string[]} hashes
-     */
     static removeFiles(envId: string, hashes: string[]) {
         dispatchAction(ActionTypes.RemoveFiles, envId, hashes);
     }
@@ -203,6 +202,15 @@ export class EnvDispatcher {
      */
     static updateThumbStates(envId: string, thumbs: any[], thumbState: any) {
         dispatchAction(ActionTypes.UpdateThumbStates, envId, {thumbs, thumbState});
+    }
+
+    static setSinkTree(envId: string, sinkTreeSnapshot: any) {
+        // TODO: Set `sinkTreeSnapshot` type
+        dispatchAction(ActionTypes.SetSinkTree, envId, sinkTreeSnapshot);
+    }
+
+    static applySinkTreeDiff(envId: string, delta: any) {
+        dispatchAction(ActionTypes.ApplySinkTreeDiff, envId, delta);
     }
 
 }

@@ -88,6 +88,7 @@ export type EnvState = {
     entityMap: EntityMap,
     tagEntityMap: TagEntityMap,
     fileMap: FileMap,
+    sinkTree: any,
     tabBrowse: TabBrowse,
     tabSearch: TabSearch,
     tabTags: TabTags,

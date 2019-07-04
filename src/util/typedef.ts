@@ -11,12 +11,14 @@ import {EnhancedStore} from 'redux-starter-kit';
 import IpcModule from '../../../shared/IpcModule';
 import BackendTypedef from '../../../shared/typedef';
 import {AppState, ReduxAction} from '../redux/ReduxTypedef';
+import {EventEmitter2} from 'eventemitter2';
 
 declare global {
     // noinspection JSUnusedGlobalSymbols
     interface Window {
-        isDevelopment: boolean;
         ipcModule: IpcModule,
+        isDevelopment: boolean;
+        proxyEmitter: EventEmitter2,
         store: EnhancedStore<AppState, ReduxAction>,
 
         handleError: (error: Error) => void,
@@ -130,7 +132,7 @@ export const KeyCode = {
 };
 
 // Reexporting parts of backend typedef
-export const BackendEvents = BackendTypedef.BackendEvents;
+export const BackendEvents: { [name: string]: string } = BackendTypedef.BackendEvents;
 export const EnvProperty = BackendTypedef.EnvProperty;
 
 export const Colors = BackendTypedef.Colors;

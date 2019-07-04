@@ -110,7 +110,7 @@ socketInitPromise
     .then(socket => {
         const store = configureStore({reducer: ogmaAppReducer});
         window.store = store;
-        window.dataManager = new DataManager({socket, store});
+        window.dataManager = new DataManager(socket, store);
         return window.dataManager.init()
             .then(() => store);
     })

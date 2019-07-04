@@ -4,7 +4,6 @@
  * @license GPL-3.0
  */
 
-import _ from 'lodash';
 import React from 'react';
 import {Helmet} from 'react-helmet';
 import {connect} from 'react-redux';
@@ -20,8 +19,8 @@ type TabManageSinksProps = {
     summary: EnvSummary,
 
     // Props provided by redux.connect
-    tagIds: string[],
     tagMap: TagMap,
+    sinkTree: any,
 }
 
 type TabManageSinksState = {
@@ -36,8 +35,8 @@ class TabManageSinks extends React.Component<TabManageSinksProps, TabManageSinks
         summary: EnvSummaryPropType.isRequired,
 
         // Props provided by redux.connect
-        tagIds: PropTypes.arrayOf(PropTypes.string).isRequired,
         tagMap: PropTypes.object.isRequired,
+        sinkTree: PropTypes.array.isRequired,
     };
 
     summary: EnvSummary;
@@ -48,8 +47,14 @@ class TabManageSinks extends React.Component<TabManageSinksProps, TabManageSinks
     }
 
     render() {
+        const {sinkTree} = this.props;
         return <React.Fragment>
             <Helmet><title>Sinks</title></Helmet>
+            <code>
+                <pre>
+                {JSON.stringify(sinkTree, null, 2)}
+                </pre>
+            </code>
             <div className="columns env-manage-tags">
                 <div className="column">
                     <div className="field has-addons">
@@ -70,22 +75,10 @@ class TabManageSinks extends React.Component<TabManageSinksProps, TabManageSinks
 
 const getTagMap: BaseSelector<any, TagMap> = (state, props) => state.envMap[props.summary.id].tagMap;
 const getShallowTagMap = createShallowEqualObjectSelector(getTagMap, data => data);
-const getTagEntityCount: BaseSelector<any, { [tagId: string]: number }> = (state, props) => {
-    const tagEntityMap = state.envMap[props.summary.id].tagEntityMap;
-    const tagEntityCount: { [tagId: string]: number } = {};
-    for (const tagId in tagEntityMap) {
-        tagEntityCount[tagId] = tagEntityMap[tagId].length;
-    }
-    return tagEntityCount;
-};
-const getShallowTagEntityCount = createShallowEqualObjectSelector(getTagEntityCount, data => data);
-const getTagIds: BaseSelector<any, string[]> = (state, props) => state.envMap[props.summary.id].tagIds;
-const getSortedTagIds = createShallowEqualObjectSelector(getTagIds, getShallowTagEntityCount, (tagIds, tagEntityCount) => {
-    return _.orderBy(tagIds, id => tagEntityCount[id], 'desc');
-});
 export default connect((state: AppState, ownProps: any) => {
+    const {sinkTree} = state.envMap[ownProps.summary.id];
     return {
-        tagIds: getSortedTagIds(state, ownProps),
         tagMap: getShallowTagMap(state, ownProps),
+        sinkTree,
     };
 })(TabManageSinks);

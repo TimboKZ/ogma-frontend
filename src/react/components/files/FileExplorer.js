@@ -131,9 +131,8 @@ class FileExplorer extends React.Component {
             const selection = {};
             this.setState({selection});
             const cachedHashes = slimFiles ? slimFiles.map(f => f.hash) : null;
-            const requestData = {id: this.summary.id, path: currPath, dirReadTime, cachedHashes};
             Promise.resolve()
-                .then(() => window.dataManager.requestDirectoryContent(requestData))
+                .then(() => window.dataManager.requestDirectoryContent(this.summary.id, currPath, dirReadTime, cachedHashes))
                 .catch(window.handleError);
         }
 
@@ -151,8 +150,7 @@ class FileExplorer extends React.Component {
             const selection = {};
             this.setState({selection});
             const cachedHashes = slimFiles ? slimFiles.map(f => f.hash) : null;
-            const requestData = {id: this.summary.id, path: currPath, dirReadTime, cachedHashes};
-            window.dataManager.requestDirectoryContent(requestData)
+            window.dataManager.requestDirectoryContent(this.summary.id, currPath, dirReadTime, cachedHashes)
                 .catch(window.handleError);
         }
     }

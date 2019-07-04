@@ -98,7 +98,7 @@ class FileEntry extends React.PureComponent {
         else if (thumbState === ThumbnailState.Possible) {
             const summary = this.summary;
             Promise.resolve()
-                .then(() => window.dataManager.requestFileThumbnail({id: summary.id, path: file.nixPath}))
+                .then(() => window.dataManager.requestFileThumbnail(summary.id, file.nixPath))
                 .catch(window.handleErrorQuiet);
         }
         this.mounted = true;

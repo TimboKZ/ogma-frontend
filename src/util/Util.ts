@@ -23,10 +23,6 @@ export default class Util {
         return packageData.version;
     }
 
-    static deepClone(object: object) {
-        return JSON.parse(JSON.stringify(object));
-    }
-
     static loadImage(url: string, id: string | null = null) {
         if (id && imageCacheMap[id]) return Promise.resolve();
 
