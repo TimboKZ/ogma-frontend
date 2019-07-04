@@ -10,9 +10,12 @@
         padding: 3px 1px 1px 6px;
         vertical-align: top;
         margin: 0 5px 5px 0;
+        float: left;
 
         &-top {
-            display: inline-block;
+            margin: 0 0 15px 0;
+            display: block;
+            float: none;
         }
 
         &-name {

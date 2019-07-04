@@ -17,6 +17,7 @@ import {EnvSummaryPropType} from '../../util/typedef';
 import {AppState, EnvSummary, Sink, TagMap} from '../../redux/ReduxTypedef';
 import {createShallowEqualObjectSelector, Selector} from '../../redux/Selector';
 import {Else, If, Then} from 'react-if';
+import Icon from '../components/Icon';
 
 type TabManageSinksProps = {
     // Props used in redux.connect
@@ -85,6 +86,7 @@ class TabManageSinks extends React.Component<TabManageSinksProps, TabManageSinks
         return <div className="env-manage-sinks">
             <Helmet><title>Sinks</title></Helmet>
             <div className="box">
+                <Icon name="info-circle"/>&nbsp;
                 Files with tags
                 <div className="env-manage-sinks-tags">
                     <ReactTags
@@ -95,22 +97,16 @@ class TabManageSinks extends React.Component<TabManageSinksProps, TabManageSinks
                         handleDelete={this.handleDelete.bind(this)}
                         handleAddition={this.handleAddition.bind(this)}/>
                 </div>
-                will get sent into sink:&nbsp;
+                will get sent into sink:&nbsp;&nbsp;
                 <If condition={!!nixPath}>
                     <Then>
                         <code className="env-manage-sinks-sink">{nixPath}</code>
                     </Then>
                     <Else>
-                        <em className="has-text-grey">None</em>
+                        <code className="env-manage-sinks-sink has-text-grey is-italic">None</code>
                     </Else>
                 </If>
             </div>
-
-            {/*<code>*/}
-            {/*    <pre>*/}
-            {/*    {JSON.stringify(sinkTree, null, 2)}*/}
-            {/*    </pre>*/}
-            {/*</code>*/}
 
             <SinkViz summary={summary} sinks={sinkTree} topLevel={true}/>
         </div>;
