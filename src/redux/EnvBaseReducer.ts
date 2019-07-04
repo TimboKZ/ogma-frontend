@@ -18,8 +18,8 @@ import {createSimpleReducer} from './SimpleReducer';
 import {DefaultEnvRoutePath} from '../util/typedef';
 import {tagIdArrayReducer} from './TagIdArrayReducer';
 import {tagEntityMapReducer} from './TagEntityMapReducer';
+import {EnvState, EnvSummary, ReduxAction, Sink} from './ReduxTypedef';
 import {tabBrowseReducer, tabSearchReducer, tabTagsReducer} from './TabReducer';
-import {EnvState, EnvSummary, ReduxAction} from './ReduxTypedef';
 
 const jsondiffpatch = require('jsondiffpatch');
 
@@ -33,7 +33,7 @@ const subRouteReducer: Reducer<string, ReduxAction> = (state = DefaultEnvRoutePa
     return action.payload;
 };
 
-const sinkTreeReducer: Reducer<any, ReduxAction> = (state = null, action) => {
+const sinkTreeReducer: Reducer<Sink[], ReduxAction> = (state = [], action) => {
     if (action.type === ActionTypes.SetSinkTree) return action.payload;
     else if (action.type === ActionTypes.ApplySinkTreeDiff) {
         const clone = SharedUtil.deepClone(state);

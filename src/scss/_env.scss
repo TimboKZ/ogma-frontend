@@ -123,4 +123,18 @@
             }
         }
     }
+
+    &-manage-sinks {
+        &-tags {
+            border: solid 1px #ddd;
+            display: inline-block;
+            vertical-align: middle;
+            border-radius: 3px;
+            margin: 0 7px;
+            width: 300px;
+            .react-tags {
+                font-size: 0.9em;
+            }
+        }
+    }
 }

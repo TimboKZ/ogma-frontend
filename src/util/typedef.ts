@@ -6,12 +6,12 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import {EventEmitter2} from 'eventemitter2';
 import {EnhancedStore} from 'redux-starter-kit';
 
 import IpcModule from '../../../shared/IpcModule';
 import BackendTypedef from '../../../shared/typedef';
 import {AppState, ReduxAction} from '../redux/ReduxTypedef';
-import {EventEmitter2} from 'eventemitter2';
 
 declare global {
     // noinspection JSUnusedGlobalSymbols
@@ -49,10 +49,11 @@ export const EnvSummaryPropType = PropTypes.shape({
     color: PropTypes.string,
 });
 
-export const MenuIds = {
-    TabBrowse: 'browse-menu',
-    TabSearch: 'search',
-};
+export enum MenuIds {
+    TabBrowse = 'browse-menu',
+    TabSearch = 'search',
+    TabSinks = 'sinks',
+}
 
 /**
  * @enum {number} FileView

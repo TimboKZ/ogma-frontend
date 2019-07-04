@@ -184,6 +184,7 @@ export default class Util {
         sortedArrayToRemove.map(str => {
             const index = _.sortedIndex(sortedArraySource, str);
             if (sortedArraySource[index] === str) removeIndexQueue.push(index);
+            return null;
         });
         if (removeIndexQueue.length === 0) return sortedArraySource;
 

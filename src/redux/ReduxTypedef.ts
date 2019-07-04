@@ -59,6 +59,13 @@ export type FileMap = {
     [hash: string]: File,
 }
 
+export type Sink = {
+    sinkId: string,
+    nixPath: string,
+    tagMap: { [tagId: string]: boolean },
+    sinks: Sink[],
+}
+
 export type TabBrowse = {
     path: string,
 }
@@ -88,7 +95,7 @@ export type EnvState = {
     entityMap: EntityMap,
     tagEntityMap: TagEntityMap,
     fileMap: FileMap,
-    sinkTree: any,
+    sinkTree: Sink[],
     tabBrowse: TabBrowse,
     tabSearch: TabSearch,
     tabTags: TabTags,
@@ -123,4 +130,7 @@ export type ReduxHandler<S> = (state: S, action: ReduxAction) => S;
 export type ReduxHandlerMap<S> = { [type: string]: ReduxHandler<S> };
 
 // Redux selector types
+/**
+ * @deprecated
+ */
 export type BaseSelector<P, R> = (state: AppState, props: P) => R;
