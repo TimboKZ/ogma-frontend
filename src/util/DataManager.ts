@@ -141,7 +141,7 @@ export default class DataManager {
         if (cachedHashes) {
             const data = {id, path, dirReadTime, cachedHashes};
             return window.ipcModule.scanDirectoryForChanges(data)
-                .then(fileDetails => {
+                .then((fileDetails: any) => {
                     EnvDispatcher.updateDirectory(data.id, fileDetails);
                 });
         }
