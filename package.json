@@ -46,6 +46,7 @@
     "@types/react-helmet": "^5.0.8",
     "@types/react-redux": "^4.4.40",
     "@types/react-tag-autocomplete": "^5.6.1",
+    "@types/ws": "^6.0.1",
     "bluebird": "^3.5.4",
     "bulma": "^0.7.5",
     "bulma-extensions": "^6.2.7",
@@ -76,6 +77,7 @@
     "react-tag-autocomplete": "^5.11.1",
     "react-virtualized-auto-sizer": "^1.0.2",
     "react-window": "^1.8.3",
+    "reconnecting-websocket": "^4.1.10",
     "reduce-reducers": "^1.0.4",
     "redux": "^4.0.1",
     "redux-starter-kit": "^0.5.1",
@@ -83,7 +85,8 @@
     "sweetalert2": "^8.11.6",
     "typescript": "^3.4.5",
     "upath": "^1.1.2",
-    "valid-filename": "^3.1.0"
+    "valid-filename": "^3.1.0",
+    "ws": "^7.1.0"
   },
   "devDependencies": {
     "@types/socket.io": "^2.1.2",

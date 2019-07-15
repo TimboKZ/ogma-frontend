@@ -37,10 +37,8 @@ export default class DataManager {
 
     init() {
         // Setup reconnect logic
-        this.socket.on('connect', () => {
-            this._syncBaseState()
-                .catch(ErrorHandler.handleMiscError);
-        });
+        this._syncBaseState()
+            .catch(ErrorHandler.handleMiscError);
 
         type BackendEventHandler = (data?: any) => void;
 

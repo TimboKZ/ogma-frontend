@@ -10,9 +10,9 @@ import {combineReducers, Reducer} from 'redux';
 
 import Util from '../util/Util';
 import {ActionTypes} from './Action';
+import SharedUtil from '../util/SharedUtil';
 import {tagMapReducer} from './TagMapReducer';
 import {fileMapReducer} from './FileMapReducer';
-import SharedUtil from '../../../shared/SharedUtil';
 import {entityMapReducer} from './EntityMapReducer';
 import {createSimpleReducer} from './SimpleReducer';
 import {DefaultEnvRoutePath} from '../util/typedef';

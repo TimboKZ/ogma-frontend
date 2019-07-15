@@ -9,8 +9,8 @@ import PropTypes from 'prop-types';
 import {EventEmitter2} from 'eventemitter2';
 import {EnhancedStore} from 'redux-starter-kit';
 
-import IpcModule from '../../../shared/IpcModule';
-import BackendTypedef from '../../../shared/typedef';
+import IpcModule from '../util/IpcModule';
+import BackendTypedef from '../util/backend-typedef';
 import {AppState, ReduxAction} from '../redux/ReduxTypedef';
 
 declare global {

@@ -8,16 +8,16 @@ import React from 'react';
 import {Helmet} from 'react-helmet';
 import {connect} from 'react-redux';
 import * as PropTypes from 'prop-types';
+import {Else, If, Then} from 'react-if';
 import ReactTags from 'react-tag-autocomplete';
 
 import Util from '../../util/Util';
+import Icon from '../components/Icon';
+import SinkTree from '../../util/SinkTree';
 import SinkViz from '../components/SinkViz';
-import SinkTree from '../../../../shared/SinkTree';
 import {EnvSummaryPropType} from '../../util/typedef';
 import {AppState, EnvSummary, Sink, TagMap} from '../../redux/ReduxTypedef';
 import {createShallowEqualObjectSelector, Selector} from '../../redux/Selector';
-import {Else, If, Then} from 'react-if';
-import Icon from '../components/Icon';
 
 type TabManageSinksProps = {
     // Props used in redux.connect
