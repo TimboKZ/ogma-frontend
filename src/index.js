@@ -21,9 +21,9 @@ import App from './react/App';
 import IpcModule from './util/IpcModule';
 import baseConfig from '../../base-config';
 import DataManager from './util/DataManager';
-import * as serviceWorker from './util/serviceWorker';
+import ErrorHandler from './util/ErrorHandler';
 import ogmaAppReducer from './redux/OgmaAppReducer';
-import ErrorHandler, {UserFriendlyError} from './util/ErrorHandler';
+import * as serviceWorker from './util/serviceWorker';
 
 Promise.config({
     cancellation: true,
@@ -79,10 +79,8 @@ socketInitPromise
     .then(socket => {
         // Setup the event emitter
         window.proxyEmitter = new EventEmitter2({wildcard: true, newListener: false, maxListeners: 20});
-
-        // Setup logic for forwarded event
-        const eventHandler = eventData => window.proxyEmitter.emit(eventData.name, eventData.data);
-        window.ipcModule = new IpcModule({socket, eventHandler});
+        // Setup module for backend communication
+        window.ipcModule = new IpcModule({socket, emitter: window.proxyEmitter});
         return socket;
     })
     .then(socket => {

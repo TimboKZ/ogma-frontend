@@ -25,6 +25,31 @@ declare global {
     }
 }
 
+export enum BackendEvents {
+    AddConnection = 'add-conn',
+    RemoveConnection = 'remove-conn',
+
+    CreateEnvironment = 'create-env',
+    CloseEnvironment = 'close-env',
+    EnvUpdateSummary = 'env-upd-summary',
+
+    EnvAddEntities = 'env-add-ent',
+    EnvRemoveEntities = 'env-remove-ent',
+    EnvUpdateEntities = 'env-upd-ent',
+
+    EnvAddFiles = 'env-add-files',
+    EnvRemoveFiles = 'env-remove-files',
+    EnvUpdateThumbs = 'env-thumb-updates',
+
+    EnvAddTags = 'env-add-tags',
+    EnvUpdateTags = 'env-update-tags',
+    EnvRemoveTags = 'env-remove-tags',
+    EnvTagFiles = 'env-tag-files',
+    EnvUntagFiles = 'env-untag-files',
+
+    EnvUpdateSinkTree = 'env-update-sink-tree',
+}
+
 export const IndexRoutePath = '/';
 
 export const BulmaSizes = ['small', 'medium', 'large'];
@@ -133,7 +158,6 @@ export const KeyCode = {
 };
 
 // Reexporting parts of backend typedef
-export const BackendEvents: { [name: string]: string } = BackendTypedef.BackendEvents;
 export const EnvProperty = BackendTypedef.EnvProperty;
 
 export const Colors = BackendTypedef.Colors;

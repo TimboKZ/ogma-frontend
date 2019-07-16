@@ -15,6 +15,10 @@ type IpcAction = {
     payload: any,
 }
 type IpcCallback = (payload: IpcAction) => void;
+type IpcEvent = {
+    name: string,
+    data: any,
+}
 
 export type ClientDetails = {
     id: string,
@@ -26,21 +30,21 @@ export type ClientDetails = {
 export default class IpcModule {
 
     socket: any;
+    emitter: any;
     requestCount: number;
     timeout: 5000;
     serverMethods: string[];
     callbackMap: { [reqId: string]: IpcCallback };
     placeholderPromise: Promise<any>;
 
-    eventHandler: (data: any) => void;
-
     /**
      * @deprecated
      */
     envManager: any;
 
-    constructor(data: { socket: any, eventHandler: (data: any) => void }) {
+    constructor(data: { socket: any, emitter: any }) {
         this.socket = data.socket;
+        this.emitter = data.emitter;
 
         this.requestCount = 0;
         this.timeout = 5000;
@@ -51,7 +55,6 @@ export default class IpcModule {
         this.callbackMap = {};
         this.placeholderPromise = Promise.resolve();
 
-        this.eventHandler = data.eventHandler;
         this._setupClientSocket();
     }
 
@@ -73,8 +76,9 @@ export default class IpcModule {
                 delete this.callbackMap[action.id];
                 if (callback) callback(action);
             } else if (action.name === 'ipc-forward-event') {
-                console.log('[IPC] Received event action:', action);
-                this.eventHandler(action);
+                const event = action.payload as IpcEvent;
+                console.log('[IPC] Received backend event:', event);
+                this.emitter.emit(event.name, event.data);
             } else {
                 console.warn('[IPC] Received unhandled action:', action);
             }
@@ -97,7 +101,7 @@ export default class IpcModule {
                     clearTimeout(timeout);
                     if (response.error) {
                         reject(new UserFriendlyError({
-                            title:   'Server-side error',
+                            title: 'Server-side error',
                             message: `Server has encountered an error: "${response.error}"`,
                         }));
                     } else {
@@ -109,6 +113,7 @@ export default class IpcModule {
     }
 
     getClientDetails(): Promise<ClientDetails> { return this.placeholderPromise;}
+
     getClientList(): Promise<ClientDetails[]> { return this.placeholderPromise;}
 
     // noinspection JSUnusedGlobalSymbols

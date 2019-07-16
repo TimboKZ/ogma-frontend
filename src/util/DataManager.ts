@@ -49,7 +49,9 @@ export default class DataManager {
 
         // Setup listeners
         const listenerMap: { [eventName: string]: BackendEventHandler } = {
-            [BackendEvents.AddConnection]: Dispatcher.addConnection,
+            [BackendEvents.AddConnection]: (clientDetails: ClientDetails) => {
+                Dispatcher.addConnection(this._parseClientDetails(clientDetails));
+            },
             [BackendEvents.RemoveConnection]: Dispatcher.removeConnection,
 
             [BackendEvents.CreateEnvironment]: summary => {

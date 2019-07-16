@@ -23,30 +23,6 @@
 
 // Event type definitions ====================================================
 /** @enum {string} BackendEvents */
-const BackendEvents = {
-    AddConnection: 'add-conn',
-    RemoveConnection: 'remove-conn',
-
-    CreateEnvironment: 'create-env',
-    CloseEnvironment: 'close-env',
-    EnvUpdateSummary: 'env-upd-summary',
-
-    EnvAddEntities: 'env-add-ent',
-    EnvRemoveEntities: 'env-remove-ent',
-    EnvUpdateEntities: 'env-upd-ent',
-
-    EnvAddFiles: 'env-add-files',
-    EnvRemoveFiles: 'env-remove-files',
-    EnvUpdateThumbs: 'env-thumb-updates',
-
-    EnvAddTags: 'env-add-tags',
-    EnvUpdateTags: 'env-update-tags',
-    EnvRemoveTags: 'env-remove-tags',
-    EnvTagFiles: 'env-tag-files',
-    EnvUntagFiles: 'env-untag-files',
-
-    EnvUpdateSinkTree: 'env-update-sink-tree',
-};
 
 
 // DB type definitions ====================================================
@@ -527,7 +503,6 @@ const ColorsDark = [
 
 const data = {
     OgmaEnvFolder,
-    BackendEvents,
     EnvProperty,
     MutableEnvProperties,
     Colors,
