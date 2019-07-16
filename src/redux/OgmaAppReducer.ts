@@ -14,7 +14,9 @@ import {AppState, ClientMap, EnvMap, ReduxHandlerMap} from './ReduxTypedef';
 const ogmaAppReducer = createSimpleReducer<AppState>({
     client: {
         id: 'unknown',
+        ip: 'unknown',
         localClient: false,
+        userAgent: {os: {name: 'Unknown'}, browser: {name: 'Unknown'}},
     },
     connectionMap: {},
 

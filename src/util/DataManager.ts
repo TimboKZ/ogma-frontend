@@ -9,18 +9,22 @@ import Denque from 'denque';
 import {Store} from 'redux';
 import Promise from 'bluebird';
 import {Socket} from 'socket.io';
+import {UAParser} from 'ua-parser-js';
 import {EventEmitter2} from 'eventemitter2';
 
+import {ClientDetails} from './IpcModule';
 import ErrorHandler from './ErrorHandler';
 import {BackendEvents, FileErrorStatus} from './typedef';
 import {Dispatcher, EnvDispatcher} from '../redux/Action';
-import {File, AppState, ReduxAction} from '../redux/ReduxTypedef';
+import {File, AppState, ReduxAction, Client} from '../redux/ReduxTypedef';
 
 export default class DataManager {
 
     socket: Socket;
     store: Store<AppState, ReduxAction>;
     emitter: EventEmitter2;
+    uaParser: UAParser;
+
     lastThumbRequestEnvId: string;
     thumbRequestQueue: Denque;
     _debounceRequestBatchThumbnails: () => void;
@@ -29,6 +33,7 @@ export default class DataManager {
         this.socket = socket;
         this.store = store;
         this.emitter = window.proxyEmitter;
+        this.uaParser = new UAParser();
 
         this.lastThumbRequestEnvId = '';
         this.thumbRequestQueue = new Denque();
@@ -90,12 +95,20 @@ export default class DataManager {
         return this._syncBaseState();
     }
 
+    _parseClientDetails = (clientDetails: ClientDetails): Client => {
+        this.uaParser.setUA(clientDetails.userAgent);
+        return {
+            ...clientDetails,
+            userAgent: this.uaParser.getResult(),
+        };
+    };
+
     _syncBaseState() {
         return Promise.all([window.ipcModule.getClientDetails(), window.ipcModule.getClientList()])
             .then(result => {
                 const [clientDetails, clientList] = result;
-                Dispatcher.setClientDetails(clientDetails);
-                Dispatcher.setClientList(clientList);
+                Dispatcher.setClientDetails(this._parseClientDetails(clientDetails));
+                Dispatcher.setClientList(clientList.map(this._parseClientDetails));
                 return window.ipcModule.getSummaries();
             })
             .then(summaries => {

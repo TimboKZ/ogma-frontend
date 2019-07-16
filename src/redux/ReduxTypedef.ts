@@ -106,7 +106,12 @@ export type EnvMap = {
 
 export type Client = {
     id: string,
+    ip: string,
     localClient: boolean,
+    userAgent: {
+        os: { name?: string }
+        browser: { name?: string }
+    }
 };
 export type ClientMap = { [id: string]: Client };
 export type Settings = {

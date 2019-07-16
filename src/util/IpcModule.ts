@@ -16,7 +16,7 @@ type IpcAction = {
 }
 type IpcCallback = (payload: IpcAction) => void;
 
-type ClientDetails = {
+export type ClientDetails = {
     id: string,
     ip: string,
     localClient: boolean,
@@ -30,6 +30,8 @@ export default class IpcModule {
     timeout: 5000;
     serverMethods: string[];
     callbackMap: { [reqId: string]: IpcCallback };
+    placeholderPromise: Promise<any>;
+
     eventHandler: (data: any) => void;
 
     /**
@@ -47,6 +49,7 @@ export default class IpcModule {
         this.serverMethods = _.filter(this.serverMethods, m => !(m.startsWith('_') || m === 'constructor'));
 
         this.callbackMap = {};
+        this.placeholderPromise = Promise.resolve();
 
         this.eventHandler = data.eventHandler;
         this._setupClientSocket();
@@ -65,7 +68,7 @@ export default class IpcModule {
         this.socket.addEventListener('message', (event: any) => {
             const action = JSON.parse(event.data) as IpcAction;
             if (action.id) {
-                console.log('[IPC] Received callback action:', action, this.callbackMap);
+                console.log('[IPC] Received callback action:', action);
                 const callback = this.callbackMap[action.id];
                 delete this.callbackMap[action.id];
                 if (callback) callback(action);
@@ -94,7 +97,7 @@ export default class IpcModule {
                     clearTimeout(timeout);
                     if (response.error) {
                         reject(new UserFriendlyError({
-                            title: 'Server-side error',
+                            title:   'Server-side error',
                             message: `Server has encountered an error: "${response.error}"`,
                         }));
                     } else {
@@ -105,8 +108,8 @@ export default class IpcModule {
         }
     }
 
-    getClientDetails = (): ClientDetails => ({} as ClientDetails);
-    getClientList = (): ClientDetails[] => ([]);
+    getClientDetails(): Promise<ClientDetails> { return this.placeholderPromise;}
+    getClientList(): Promise<ClientDetails[]> { return this.placeholderPromise;}
 
     // noinspection JSUnusedGlobalSymbols
     /**

@@ -46,6 +46,7 @@
     "@types/react-helmet": "^5.0.8",
     "@types/react-redux": "^4.4.40",
     "@types/react-tag-autocomplete": "^5.6.1",
+    "@types/ua-parser-js": "^0.7.33",
     "@types/ws": "^6.0.1",
     "bluebird": "^3.5.4",
     "bulma": "^0.7.5",
@@ -84,6 +85,7 @@
     "reselect": "^4.0.0",
     "sweetalert2": "^8.11.6",
     "typescript": "^3.4.5",
+    "ua-parser-js": "^0.7.20",
     "upath": "^1.1.2",
     "valid-filename": "^3.1.0",
     "ws": "^7.1.0"

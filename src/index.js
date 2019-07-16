@@ -40,7 +40,7 @@ window.handleErrorQuiet = ErrorHandler.handleMiscErrorQuiet;
 
 if (window.isDevelopment) {
     console.log('Ogma app running in development mode.');
-    window.serverHost = `http://${baseConfig.ogmaHost}:${baseConfig.ogmaPort}`;
+    window.serverHost = `http://${baseConfig.host}:${baseConfig.webPort}`;
 } else {
     window.serverHost = '';
 }
@@ -67,8 +67,7 @@ const socketInitPromise = new Promise(resolve => {
     });
     socket.addEventListener('error', error => {
         NotificationManager.error('Error occurred when connecting to server.');
-        console.error('Error occurred while establishing ');
-        console.error(error);
+        console.error('Error occurred while establishing socket connection:', error.message);
     });
 });
 
