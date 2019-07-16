@@ -83,11 +83,7 @@ socketInitPromise
 
         // Setup logic for forwarded event
         const eventHandler = eventData => window.proxyEmitter.emit(eventData.name, eventData.data);
-        const errorHandler = errorMessage => new UserFriendlyError({
-            title: 'Server-side error',
-            message: `Server has encountered an error: "${errorMessage}"`,
-        });
-        window.ipcModule = new IpcModule({socket, eventHandler, errorHandler});
+        window.ipcModule = new IpcModule({socket, eventHandler});
         return socket;
     })
     .then(socket => {

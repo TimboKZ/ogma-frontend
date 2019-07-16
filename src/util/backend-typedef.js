@@ -11,19 +11,6 @@
  * @property {string} ogmaBackendVersion
  * @property {string[]} openEnvironments
  */
-/**
- * @typedef {object} ConnectionDetails
- * @property {string} id
- * @property {boolean} localClient
- */
-/**
- * @typedef {object} ClientDetails
- * @property {string} id
- * @property {string} ip
- * @property {boolean} localClient
- * @property {string} userAgent
- * @property {object} [socket]
- */
 /** @typedef {EventEmitter2} EventEmitter */
 /** @typedef {BetterSqlite3.Database} Database */
 /**

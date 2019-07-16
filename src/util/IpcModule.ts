@@ -6,31 +6,41 @@
 
 import _ from 'lodash';
 import Promise from 'bluebird';
-import {cyan, green, magenta, red} from 'chalk';
+import {UserFriendlyError} from './ErrorHandler';
 
-import SharedUtil from './SharedUtil';
-import {BackendEvents} from './typedef';
+type IpcAction = {
+    id?: number,
+    name: string,
+    error?: string,
+    payload: any,
+}
+type IpcCallback = (payload: IpcAction) => void;
 
-let Util = null;
-let electron = null;
-let uaParser = null;
+type ClientDetails = {
+    id: string,
+    ip: string,
+    localClient: boolean,
+    userAgent: string,
+}
 
 export default class IpcModule {
 
-    /**
-     * @param {object} data
-     * @param {object} data.socket
-     * @param {Logger} [data.logger] For server mode
-     * @param {OgmaCore} [data.ogmaCore] For server mode
-     * @param {string[]} [data.localIps] For server mode
-     * @param {function(data: *)} [data.eventHandler] For client mode
-     * @param {function(error: string)} [data.errorHandler] For client mode
-     */
-    constructor(data) {
-        this.socket = data.socket;
-        this.logger = data.logger;
+    socket: any;
+    requestCount: number;
+    timeout: 5000;
+    serverMethods: string[];
+    callbackMap: { [reqId: string]: IpcCallback };
+    eventHandler: (data: any) => void;
 
-        this.requestId = 0;
+    /**
+     * @deprecated
+     */
+    envManager: any;
+
+    constructor(data: { socket: any, eventHandler: (data: any) => void }) {
+        this.socket = data.socket;
+
+        this.requestCount = 0;
         this.timeout = 5000;
 
         this.serverMethods = Object.getOwnPropertyNames(IpcModule.prototype);
@@ -39,198 +49,64 @@ export default class IpcModule {
         this.callbackMap = {};
 
         this.eventHandler = data.eventHandler;
-        this.errorHandler = data.errorHandler;
         this._setupClientSocket();
     }
 
-    _setupServerSocket() {
-        // Broadcast selected events to clients
-        const that = this;
-        this.emitter.addListener('*', function (...args) {
-            const eventName = this.event;
-            // if (!ForwardedEventsMap[eventName]) return;
-            that.socket.sockets.emit('ipc-forward-event', {name: eventName, args});
-        });
-
-        // Process messages from clients
-        this.socket.on('connection', socket => {
-            const client = this._prepareClientDetails(socket);
-            this._addClient(client);
-
-            const addressString = `${client.ip}, ${client.userAgent.browser.name} on ${client.userAgent.os.name}`;
-            this.logger.info(`${green('Connected')}: ${cyan(client.id)} from <${magenta(addressString)}>`);
-            socket.on('disconnect', () => {
-                this._removeClient(client);
-                this.logger.info(`${red('Disconnected')}: ${cyan(client.id)} from <${magenta(addressString)}>`);
-            });
-
-            socket.on('ipc-call', (data, callback) => {
-                this.requestCount++;
-                // TODO: Log request here with `setTimeout`.
-
-                Promise.resolve()
-                    .then(() => this[data.name](data.data, client))
-                    .then(result => {
-                        // Trigger the callback
-                        callback({result});
-
-                        // Print connection information
-                        const connSummary = `[IPC request] ${client.id} -> ${cyan(data.name)}`;
-                        const resultString = `${magenta('result')}: ${SharedUtil.toHumanReadableType(result)}`;
-                        if (data.data) {
-                            const dataString = `${magenta('data')}: ${JSON.stringify(data.data)}`;
-                            this.logger.debug(`${connSummary}, ${dataString}, ${resultString}`);
-                        } else {
-                            this.logger.debug(`${connSummary}, ${resultString}`);
-                        }
-
-                    })
-                    .catch(error => {
-                        callback({error: error.message});
-                        this.logger.error('An error occurred while processing socket action:', {
-                            name: data.name,
-                            data: data.data,
-                        }, '\n', error);
-                    });
-            });
-        });
-    }
-
-    /**
-     * @param {object} socket
-     * @returns {ClientDetails}
-     * @private
-     */
-    _prepareClientDetails(socket) {
-        const id = Util.getShortId();
-        let ip = socket.client.request.headers['x-forwarded-for']
-            || socket.client.conn.remoteAddress
-            || socket.conn.remoteAddress
-            || socket.request.connection.remoteAddress;
-        let localClient = false;
-        const userAgent = uaParser(socket.handshake.headers['user-agent']);
-
-        // Determine if connection comes from a local client
-        if (ip === '::1') {
-            ip = 'local';
-            localClient = true;
-        } else if (ip.startsWith('::ffff:')) {
-            ip = ip.substring(7);
-            if (this.localIpTrie.has(ip)) {
-                localClient = true;
-            }
-        } else {
-            // TODO: Need to support IPv6...
+    _requestAction(action: IpcAction, callback?: IpcCallback) {
+        if (callback) {
+            if (action.id) this.callbackMap[action.id] = callback;
+            else console.warn(`Specified callback for action with no ID: ${action}`);
         }
-
-        return {
-            id,
-            ip,
-            localClient,
-            userAgent,
-            socket,
-        };
-    }
-
-    _addClient(client) {
-        this.clientMap[client.id] = client;
-        this.emitter.emit(BackendEvents.AddConnection, {
-            id: client.id,
-            ip: client.ip,
-            localClient: client.localClient,
-            userAgent: client.userAgent,
-        });
-    }
-
-    _removeClient(client) {
-        delete this.clientMap[client.id];
-        this.emitter.emit(BackendEvents.RemoveConnection, client.id);
-    }
-
-    // noinspection JSMethodCanBeStatic
-    _parseMessage(messageString) {
-        if (typeof messageString !== 'string') {
-            throw new Error(`Received non-string data over websocket: ${messageString}`);
-        }
-        const parts = messageString.split('@', 2);
-        const dataString = parts.length >= 2 && !!parts[1] ? parts[1] : null;
-        const hasError = dataString && dataString.length >= 1 && dataString.charAt(0) === '!';
-        let data;
-        let error;
-        if (hasError) error = dataString.substring(1);
-        else if (dataString) data = JSON.parse(dataString);
-
-        const headerParts = parts[0].split('#', 2);
-        const hasId = headerParts.length >= 2;
-        const id = hasId ? headerParts[0] : null;
-        const name = hasId ? headerParts[1] : headerParts[0];
-
-        return {id, name, data, error};
-    }
-
-    _sendMessageWithCallback(name, data = null, callback = null) {
-        const requestId = ++this.requestId;
-        let string = `${requestId}#${name}`;
-        if (data) string += `@${JSON.stringify(data)}`;
-        if (callback) this.callbackMap[requestId] = callback;
-        this.socket.send(string);
+        this.socket.send(JSON.stringify(action));
     }
 
     _setupClientSocket() {
         // Process incoming messages
-        this.socket.addEventListener('message', event => {
-            const data = this._parseMessage(event.data);
-            console.log('[IPC] Received message:',data);
-            if (data.id) {
-                const callback = this.callbackMap[data.id];
-                delete this.callbackMap[data.id];
-                if (callback) callback(data);
-            } else if (data.name === 'ipc-forward-event') this.eventHandler(data);
+        this.socket.addEventListener('message', (event: any) => {
+            const action = JSON.parse(event.data) as IpcAction;
+            if (action.id) {
+                console.log('[IPC] Received callback action:', action, this.callbackMap);
+                const callback = this.callbackMap[action.id];
+                delete this.callbackMap[action.id];
+                if (callback) callback(action);
+            } else if (action.name === 'ipc-forward-event') {
+                console.log('[IPC] Received event action:', action);
+                this.eventHandler(action);
+            } else {
+                console.warn('[IPC] Received unhandled action:', action);
+            }
         });
 
         // Forward method calls to backend
         for (const methodName of this.serverMethods) {
-            this[methodName] = methodData => new Promise((resolve, reject) => {
+            // @ts-ignore
+            this[methodName] = (payload: any) => new Promise((resolve, reject) => {
 
                 this.requestCount++;
                 const requestId = this.requestCount;
-                const prefix = `[IPC Req #${requestId}]`;
+                const action = {id: requestId, name: methodName, payload};
+
                 const timeout = setTimeout(() => {
-                    console.warn(`${prefix} ${methodName} timed out! Data:`, methodData);
+                    console.warn(`[IPC] Action request timeout:`, action);
                 }, this.timeout);
 
-                this._sendMessageWithCallback(methodName, methodData, response => {
+                this._requestAction(action, (response: IpcAction) => {
                     clearTimeout(timeout);
-                    if (response.error) reject(this.errorHandler(response.error));
-                    else resolve(response.data);
+                    if (response.error) {
+                        reject(new UserFriendlyError({
+                            title: 'Server-side error',
+                            message: `Server has encountered an error: "${response.error}"`,
+                        }));
+                    } else {
+                        resolve(response.payload);
+                    }
                 });
             });
         }
     }
 
-    // noinspection JSUnusedGlobalSymbols,JSMethodCanBeStatic
-    /**
-     * @param {object} [data]
-     * @param {object} [client]
-     * @returns {ConnectionDetails}
-     */
-    getClientDetails(data = null, client) {
-        return {
-            id: client.id,
-            localClient: client.localClient,
-        };
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    getClientList() {
-        const clients = Object.values(this.clientMap);
-        return clients.map(client => ({
-            id: client.id,
-            ip: client.ip,
-            localClient: client.localClient,
-            userAgent: client.userAgent,
-        }));
-    }
+    getClientDetails = (): ClientDetails => ({} as ClientDetails);
+    getClientList = (): ClientDetails[] => ([]);
 
     // noinspection JSUnusedGlobalSymbols
     /**
@@ -246,6 +122,7 @@ export default class IpcModule {
      * @param {object} data
      * @param {string} data.id Environment ID
      */
+    // @ts-ignore
     getAllTags(data) {
         return this.envManager.getEnvironment({id: data.id}).getAllTags();
     }
@@ -256,6 +133,7 @@ export default class IpcModule {
      * @param {string} data.id Environment ID
      * @param {DBTag} data.tag New tag definition
      */
+    // @ts-ignore
     updateTag(data) {
         return this.envManager.getEnvironment({id: data.id}).updateTag(data);
     }
@@ -266,6 +144,7 @@ export default class IpcModule {
      * @param {string} data.id Environment ID
      * @param {string} data.tagId ID of the tag to delete
      */
+    // @ts-ignore
     removeTag(data) {
         return this.envManager.getEnvironment({id: data.id}).removeTag(data);
     }
@@ -277,6 +156,7 @@ export default class IpcModule {
      * @param {string[]} data.tagNames Names of tags to add
      * @param {string[]} data.paths Array of relative paths of the file (from environment root)
      */
+    // @ts-ignore
     addTagsToFiles(data) {
         return this.envManager.getEnvironment(data).addTagsToFiles(data);
     }
@@ -288,6 +168,7 @@ export default class IpcModule {
      * @param {string[]} data.tagIds IDs of tags to remove
      * @param {string[]} data.entityIds Array of entity IDs from which to remove tags
      */
+    // @ts-ignore
     removeTagsFromFiles(data) {
         return this.envManager.getEnvironment(data).removeTagsFromFiles(data);
     }
@@ -297,6 +178,7 @@ export default class IpcModule {
      * @param {object} data
      * @param {string} data.id Environment ID
      */
+    // @ts-ignore
     getAllEntities(data) {
         return this.envManager.getEnvironment(data).getAllEntities();
     }
@@ -308,6 +190,7 @@ export default class IpcModule {
      * @param {string[]} data.entityIds Entity IDs for each file details will be fetched.
      * @returns {Promise.<(FileDetails||FileErrorStatus)[]>}
      */
+    // @ts-ignore
     getEntityFiles(data) {
         return this.envManager.getEnvironment(data).getEntityFiles(data);
     }
@@ -321,11 +204,13 @@ export default class IpcModule {
      * @param {string} [data.icon]
      * @param {string} [data.color]
      */
+    // @ts-ignore
     setEnvProperty(data) {
         return this.envManager.getEnvironment(data).setProperty(data);
     }
 
     // noinspection JSUnusedGlobalSymbols
+    // @ts-ignore
     createEnvironment(_, client) {
         if (!client.localClient) {
             throw new Error('Only local clients can create new environment!');
@@ -338,6 +223,7 @@ export default class IpcModule {
      * @param {object} data
      * @param {string} data.id
      */
+    // @ts-ignore
     closeEnvironment(data) {
         return this.envManager.closeEnvironment(data);
     }
@@ -348,6 +234,7 @@ export default class IpcModule {
      * @param {string} data.id Environment ID
      * @param {string} data.path Relative path of the directory (from environment root)
      */
+    // @ts-ignore
     getDirectoryContents(data) {
         return this.envManager.getEnvironment(data).getDirectoryContents(data);
     }
@@ -361,6 +248,7 @@ export default class IpcModule {
      * @param {number} data.dirReadTime Time (in seconds) when the directory was initially read
      * @returns {Promise.<FileDetails>} Directory details
      */
+    // @ts-ignore
     scanDirectoryForChanges(data) {
         return this.envManager.getEnvironment(data).scanDirectoryForChanges(data);
     }
@@ -372,6 +260,7 @@ export default class IpcModule {
      * @param {string} data.path Relative path of the file (from environment root)
      * @param {ClientDetails} [client]
      */
+    // @ts-ignore
     openFile(data, client) {
         if (!client.localClient) throw new Error('Only local clients can open files natively!');
         return this.envManager.getEnvironment(data).openFile(data);
@@ -384,6 +273,7 @@ export default class IpcModule {
      * @param {string} data.path Relative path of the file (from environment root)
      * @param {ClientDetails} [client]
      */
+    // @ts-ignore
     openInExplorer(data, client) {
         if (!client.localClient) throw new Error('Only local clients can open files in explorer!');
         return this.envManager.getEnvironment(data).openInExplorer(data);
@@ -394,6 +284,7 @@ export default class IpcModule {
      * @param {object} data
      * @param {string} data.id Environment ID
      */
+    // @ts-ignore
     getSinkTreeSnapshot(data) {
         return this.envManager.getEnvironment(data).getSinkTreeSnapshot();
     }
@@ -404,6 +295,7 @@ export default class IpcModule {
      * @param {string} data.id Environment ID
      * @param {string[]} data.paths Paths to files that will be sorted to sinks.
      */
+    // @ts-ignore
     moveFilesToSink(data) {
         return this.envManager.getEnvironment(data).moveFilesToSinks(data);
     }
@@ -414,6 +306,7 @@ export default class IpcModule {
      * @param {string} data.id Environment ID
      * @param {string} data.path Path to the new folder.
      */
+    // @ts-ignore
     createFolder(data) {
         return this.envManager.getEnvironment(data).createFolder(data);
     }
@@ -426,6 +319,7 @@ export default class IpcModule {
      * @param {string} data.newPath New path to the file, relative to environment root.
      * @param {boolean} [data.overwrite=false] Whether to overwrite if the new file already exists
      */
+    // @ts-ignore
     renameFile(data) {
         return this.envManager.getEnvironment(data).renameFile(data);
     }
@@ -436,6 +330,7 @@ export default class IpcModule {
      * @param {string} data.id Environment ID
      * @param {string[]} data.paths Array of relative paths of the file (from environment root)
      */
+    // @ts-ignore
     removeFiles(data) {
         return this.envManager.getEnvironment(data).removeFiles(data);
     }
@@ -446,6 +341,7 @@ export default class IpcModule {
      * @param {string} data.id Environment ID
      * @param {string[]} data.paths Array of relative paths to files (from environment root)
      */
+    // @ts-ignore
     requestFileThumbnails(data) {
         return this.envManager.getEnvironment(data).requestThumbnails(data);
     }
@@ -456,8 +352,9 @@ export default class IpcModule {
      * @param {string} data.link
      * @param {ClientDetails} [client]
      */
+    // @ts-ignore
     openExternalLink(data, client) {
         if (!client.localClient) throw new Error('Only local clients can open external links!');
-        electron.shell.openExternal(data.link);
+        // electron.shell.openExternal(data.link);
     }
 }
