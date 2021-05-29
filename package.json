@@ -88,7 +88,7 @@
     "ua-parser-js": "^0.7.20",
     "upath": "^1.1.2",
     "valid-filename": "^3.1.0",
-    "ws": "^7.1.0"
+    "ws": "^7.4.6"
   },
   "devDependencies": {
     "@types/socket.io": "^2.1.2",
